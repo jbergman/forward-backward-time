@@ -793,25 +793,7 @@ For two populations with sample sizes $M_1$ and $M_2$, the respective likelihood
 \end{equation}
 where $M$ is the minimum of $M_1$ and $M_2$, since higher order terms contribute zero weight to the inner product. 
 
-As an example, consider an ancestral population with stationary beta allele frequency distribution parametrized by $\alpha$ and $\theta$; the ancestral population splits into two at some time in the past $t=-s$. A joint site frequency spectrum is simulated from both populations (Table~\ref{jointSFScont}) at the present time $t=0$. The likelihood of the split time $t$ can be calculated given the joint SFS (Figure~\ref{twoPopcont}). Maximizing the likelihood is 
-
-%\end{document}
-\subsection{Green's function}
-\todo[inline]{This subsection is rather disconnected. Move to an appendix?}
-
-\citet{Song12} analyze a self-adjoint situation with a Dirac delta function $\delta(x-p)$ as starting point at an arbitrary time $s$ in the past. Denote the (general) eigenfunctions of the backward equation with $B_i(x)$. Then 
-\begin{equation}\label{eq:Greens_function}
-    p(x\given p,\tau)=\sum_{i=0}^\infty e^{-\lambda_i \tau}\pi(x) \frac{B_i(x)B_i(p)}{\langle B_i(x)B_i(p) \rangle_{\pi}}
-\end{equation}
-is a Green's function of the forward diffusion equation. %TODO citation!
-Generally, our starting condition is not a particular state, which can be modeled by the Dirac Delta function, but a distribution, say $\rho(p)$. The function 
-\begin{equation}\label{eq:Fredholm}
-    h(x\given p,\rho,\tau)=\int_0^1 p(x\given p,\tau)\rho(p)\,dp
-\end{equation}
-solves the problem from any starting distribution $\rho(p)$. In fact, $h(x\given p,\rho,\tau)$ is a Fredholm integral equation. %TODO citation!
-With the applications in this article, however, the deviation through the infinite series in equations (\ref{eq:Greens_function} and \ref{eq:Fredholm}) is more cumbersome than the direct route to the polynomials of degree $M$ in the examples above.
-
-Note that the approach with Green's functions is analogous to the use of the forward models in \eg\ POMO \citep{DeMa13} with summation replacing the integral in equation (\ref{eq:Fredholm}).
+As an example, consider an ancestral population with stationary beta allele frequency distribution parametrized by $\alpha$ and $\theta$; the ancestral population splits into two at some time in the past $t=-s$. A joint site frequency spectrum is simulated from both populations (Table~\ref{jointSFScont}) at the present time $t=0$. The likelihood of the split time $t$ can be calculated given the joint SFS (Figure~\ref{twoPopcont}). 
 
 \section{Discussion}
 
@@ -825,9 +807,9 @@ With the continuous diffusion models, orthogonal polynomials are used. Convenien
 
 We apply the models to infer the conditional distribution of population allelic proportions backwards in time conditional on SFS from the present. While some of the models use time-reversible Markov chains, the assumption of time-reversibility is not necessary and numerical advantages of time-reversibility are only slight.
 
-Song and colleagues \citep{Song12,Stei13,Stei14,Zivk15} analyse self-adjoint continuous models with a Dirac delta function as starting state, instead of a prior distribution at $t=s$ and a likelihood at $t=0$. These assumptions leads to infinite series instead of polynomials up to the order of the sample size $M$, as with our assumptions. But since these authors also consider selection, which leads to infinite expansions on its own, this inconvenience does not matter in their approaches. 
+Song and colleagues \citep{Song12,Stei13,Stei14,Zivk15} analyse self-adjoint continuous models with a Dirac delta function as starting state, instead of a prior distribution at $t=s$ and a likelihood at $t=0$ (see the Appendix \ref{section:Greens_function}). Their assumptions necessitate infinite series of polynomials, instead of up to the order of the sample size $M$, as with our assumptions. But since these authors also consider selection, which leads to eigenfunctions with infinite expansions on its own, this inconvenience is irrelevant. 
 
-As with the discrete model, also in the continuous diffusion case, \citet{Zhao13} present a method that uses a similar setting but seems more complicated and can be extended less easily. 
+Interestingly, \citet{Zhao13} also present an approach involving diffusion to calculate conditional trajectories that involves the product of solutions of the forward and backward equation. As with Song and colleagues, these authors consider a Dirac delta function as starting state, and additionally also as a final state. Usually in population genetics, however, only a sample of the present is given, while the starting conditions are even less well defined. Thus our approach is better suited to the usual population genetic data, \ie\ to SFS and jSFS from the present. 
 
 The methods and algorithms can easily be adjusted to an experimental setting with samples from multiple time points, as \eg\ in evolve-and-resequence experiments \citep{Kofl14}. In fact, \citet{Stei14} envision exactly such an application and analyze ancient DNA data. 
 
@@ -838,7 +820,25 @@ Generally, the methods and models we present in this article are simple, yet all
 
 \section*{Acknowledgments}
 
-The authors thank everyone and particularly N.N.\ for critically reading the article and providing helpful suggestions. The study was funded by the Austrian Science Fund (FWF W1225-B20).
+The authors thank Reinhard B\"urger, Joachim Hermisson and other colleagues from the mathematics institute of the University of Vienna for their comments to this work. The study was funded by the Austrian Science Fund (FWF W1225-B20). %TODO: ask Julia how we  acknowledgement the FWF!
+
+\section{Appendices}
+%\end{document}
+\subsection{Appendix: Green's function}\label{section:Greens_function}
+
+\citet{Song12} analyze self-adjoint differential equations, with a Dirac delta function $\delta(x-p)$ as starting point at an arbitrary time $s$ in the past. Denote the (general) eigenfunctions of the backward equation with $B_i(x)$. Then 
+\begin{equation}\label{eq:Greens_function}
+    p(x\given p,\tau)=\sum_{i=0}^\infty e^{-\lambda_i \tau}\pi(x) \frac{B_i(x)B_i(p)}{\langle B_i(x)B_i(p) \rangle_{\pi}}
+\end{equation}
+is a Green's function of the forward diffusion equation. %TODO citation!
+Our starting condition is not a particular state, which can be modeled by the Dirac Delta function, but a distribution $\rho(p)$. The function 
+\begin{equation}\label{eq:Fredholm}
+    h(x\given p,\rho,\tau)=\int_0^1 p(x\given p,\tau)\rho(p)\,dp
+\end{equation}
+solves the diffusion equation with the starting starting distribution $\rho(p)$. In fact, $h(x\given p,\rho,\tau)$ is a Fredholm integral equation. %TODO citation!
+With the applications in this article, however, the deviation through the infinite series in equations (\ref{eq:Greens_function} and \ref{eq:Fredholm}) is more cumbersome than the direct route to the polynomials of degree $M$ in the examples above. 
+
+Note that the approach with Green's functions is analogous to the use of the discrete forward models in \eg\ POMO \citep{DeMa13}, with summation replacing the integral in equation (\ref{eq:Fredholm}).
 
 \section*{References}
 

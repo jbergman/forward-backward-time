@@ -148,11 +148,11 @@ Backward processes allow pushing the conditioning on the population allele frequ
 
 In this article, we use backward processes to conveniently calculate probabilities of population allelic proportions backward in time conditional on the SFS or the jSFS from the present. In discrete time, the algorithm is a variant of the forward-backward algorithm and thus uses dynamic programming. The method can also be used to calculate likelihoods of jSFS. Furthermore, we introduce biallelic population genetic models with mutations only from the boundaries that are variants of the infinite site or Poisson-random-fields models \citep{Kimu69,Sawy92}. The Markov chains of the models under consideration have no absorbing states and therefore they have stationary distributions.  However, we do not assume time-reversibility. For the discrete models, transition matrices have to be multiplied. For large population sizes this may be more cumbersome than the use of Kolmogorov forward and backward diffusion equations and of orthogonal polynomials. With mutation and drift only, such orthogonal polynomials provide a flexible and fast method to calculate marginal likelihoods for inference in population genetics.
 
-\section{Time-homogeneous discrete Markov chains, forward and backward in time}
+\section{Time-homogeneous discrete Markov chains}
 
 \begin{enumerate}[(i)]
 \item Assume a population of large (effective) size $N$ and some bi-allelic mutation model. The time-dependent frequency of the first of the two allelic types in the population is denoted $\x{t}$ ($0 \le \x{t} \le N$) and is assumed to evolve as a discrete, time-homogeneous Markov chain with transition probability matrix $\mathbf{T}$, where $(T_{ij})_{i,j \in \{0, \ldots, N\}} = \Pr(\x{t+1}=j \given \x{t}=i)$.  The rows of $\mathbf{T}$ sum to one and it is irreducible and aperiodic.
-\item At a (possibly unknown) time $t=\s$ ($\s<0$) in the past, a distribution of frequencies is given by $\bs{\rho} = (\rho_{i})_{i \in \{0, \ldots, N\}}$.
+\item At a (possibly unknown) time $t=\s$ ($\s<0$) in the past, a distribution of frequencies is given by $\bs{\rho}$ with entries $(\rho_{i})_{i \in \{0, \ldots, N\}} = \Pr(\x{\s}=i)$.
 % TODO:  I think the paragraph belongs to the respective problems.
 In particular, $\bs{\rho}$ may be the stationary distribution of the forward process $\bs{\pi}=(\pi_i)_{i \in \{0, \ldots, N\}}$ or may correspond to a joint distribution of some other data and the equilibrium allele frequency distribution. 
 \item The population evolves until the present time $t=0$, when a sample of size $M$ is drawn.  We denote the frequency of the first allele as $\y$ ($0 \le \y \le M$). The likelihood of observing $\y$ is given by $\Pr(\y \given M, \x{0})$ (we may leave away the dependency on $M$ in the following) and will be defined according to the application.
@@ -170,23 +170,23 @@ For two populations, assumptions (ii) and (iii) are modified:
 
 \subsection{Forward in time}
 
-Often, our data are from the present and we want to condition on the configuration of allele frequencies at earlier times. Assume, at time $-\s$ in the past, a distribution of probabilities of the frequencies $\bs{\rho}$ with entries $\rho_i = \Pr(\x{-\s}=i)$. For a representation in matrix form, we introduce the row vector $\fv{-\s} = \bs{\rho}$, \ie\ the vector of initial probabilities of states. We can calculate the vector of probabilities of states recursively 
+Often, our data are from the present and we want to condition on the configuration of allele frequencies at earlier times.  We introduce the row vector $\fv{t}$ with entries $(\fv{t})_{i} = \Pr(X_{t} = i)$ and set $\fv{\s} = \bs{\rho}$, \ie the vector of initial probabilities of states. We can calculate the vector of probabilities of states recursively 
 % TODO: Describe the vector f, so that readers can understand.
 %CV: I tried; please check!
 \begin{equation}
-\fv{t+1} = \fv{t}\mathbf{T} \quad (-\s \le t \le -1).
+\fv{t+1} = \fv{t}\mathbf{T} \quad (\s \le t \le -1).
 \end{equation}
-This corresponds to the recursion in the forward algorithm in the theory of Hidden Markov models (HMM)~\citep[\eg][]{Vogl10}. Let $\oneC$ be a column vector of ones ($'$ is the matrix transpose operator) and $\mathbf{D}$ a diagonal matrix with the conditional likelihoods on the main diagonal, \ie\ $(\mathbf{D})_{ii}=\Pr(\y \given \x{0}=i)$. The marginal likelihood then is
+This corresponds to the recursion in the forward algorithm in the theory of Hidden Markov models (HMM)~\citep[\eg][]{Vogl10}. Let $\oneC$ be a column vector of ones ($'$ depicts transposition) and $\mathbf{D}$ a diagonal matrix with the conditional likelihoods on the main diagonal, \ie\ $(\mathbf{D})_{ii}=\Pr(\y \given \x{0}=i)$. The marginal likelihood then is
 \begin{equation}
-\Pr(\y \given \bs{\rho}) = \fv{-\s}\mathbf{T}^{\s}\mathbf{D}\oneC.
+\Pr(\y \given \bs{\rho}) = \fv{\s}\mathbf{T}^{|\s|}\mathbf{D}\oneC.
 \end{equation}
 
 \subsection{Backward in time}\label{section:backward}
 
-Using a strategy as with the backward algorithm in the theory of HMM, set $\bv{0}=\mathbf{D}\oneC$. Backward in time, the recursion is
+Using a strategy as with the backward algorithm in the theory of HMM, set $\bv{0}'=\mathbf{D}\oneC$. Backward in time, the recursion is
 \begin{equation}
 \begin{split}
-\bv{t} = \mathbf{T} \bv{t+1} \quad (-\s \le t \le -1).
+\bv{t}' = \mathbf{T} \bv{t+1}' \quad (\s \le t \le -1),
 \end{split}
 \end{equation}
 % TODO: Claus: Do we really need this?
@@ -202,23 +202,24 @@ Using a strategy as with the backward algorithm in the theory of HMM, set $\bv{0
 % % \bv{-\s}' &=\oneR \mathbf{D}\mathbf{T}'\mathbf{T}'\cdots\mathbf{T}'\mathbf{T}'\mathbf{T}'\mathbf{T}'.
 % \end{split}
 % \end{equation}
-We find that $\bv{t}$ $(-\s \le t \le 0)$ is a column vector. This can also be written as
+% We find that $\bv{t}$ $(-\s \le t \le 0)$ is a column vector.
+which can also be written as
 \begin{equation}\label{eq:backwards_discrete}
 \begin{split}
-\Pr(\y \given \x{t}=i) &= \sum_j \Pr(\x{t+1}=j \given \x{t}=i) \Pr(\y \given \x{t+1}=j) \\
-&=\sum_j q_{ij} \Pr(\y \given \x{t+1}=j).
+\Pr(\y \given \x{t}=i) = \sum_j \Pr(\x{t+1}=j \given \x{t}=i) \Pr(\y \given \x{t+1}=j).
+%&=\sum_j q_{ij} \Pr(\y \given \x{t+1}=j).
 \end{split}
 \end{equation}
 From the definition of $\bv{t}$, it follows that we condition on $\x{t}$
 \begin{equation}
-\bv{t} = \Pr(\y \given \x{t}).
+(\bv{t})_{i} = \Pr(\y \given \x{t}=i).
 \end{equation}
 The recursion moves the conditioning to ever earlier times. The marginal likelihood may also be obtained with the backward algorithm,
 \begin{equation}\label{eq:marg_lh}
 \begin{split}
-\Pr(\y \given \bs{\rho}) &= \fv{-\s} \left[\mathbf{T}^s \mathbf{D}\oneC\right]\\
-                         &= \fv{-\s} \bv{-\s}\\
-                         &= \sum_i \rho_i \Pr(\y \given \x{-\s}=i).
+\Pr(\y \given \bs{\rho}) &= \fv{\s} \left[\mathbf{T}^{|\s|} \mathbf{D}\oneC\right]\\
+                         &= \fv{\s} \bv{\s}' \\
+                         &= \sum_i \rho_i \Pr(\y \given \x{\s}=i).
 \end{split}
 \end{equation}
 
@@ -226,14 +227,16 @@ The recursion moves the conditioning to ever earlier times. The marginal likelih
 
 The marginal likelihood (\ref{eq:marg_lh}) is constant over time $t$ 
 \begin{equation}
-\Pr(\y \given \bs{\rho}) = \fv{t}\bv{t} =\sum_i \Pr(\x{t}=i \given \bs{\rho}) \Pr(\y \given \x{t}=i).
+\Pr(\y \given \bs{\rho}) = \fv{t}\bv{t}' =\sum_i \Pr(\x{t}=i \given \bs{\rho}) \Pr(\y \given \x{t}=i) = \langle \fv{t}, \bv{t} \rangle_{\bs{\rho}},
 \end{equation}
-It defines an inner product. It follows that forward and backward transition matrices, \ie\ $\mathbf{T}$ and its transpose $\mathbf{T}'$, are adjoint since
+where $\langle , \rangle>$ denotes an inner product.
+% TODO: This may be refined because the inner product depends on \rho (subscript).
+It follows that forward and backward transition matrices, \ie\ $\mathbf{T}$ and its transpose $\mathbf{T}'$, are adjoint since
 \begin{equation}\label{eq:adjoint_discrete}
 \begin{split}
 \Pr(\y \given \bs{\rho})              &= \Pr(\y \given \bs{\rho}) \\
-\left(\fv{t}\mathbf{T}\right)\bv{t+1} &= \fv{t}\left(\mathbf{T}\bv{t+1}\right) \\
-\langle \fv{t}\mathbf{T},\bv{t+1}' \rangle   &= \langle  \fv{t},\bv{t+1}'\mathbf{T}' \rangle.
+(\fv{t}\mathbf{T})\bv{t+1}' &= \fv{t} (\mathbf{T}\bv{t+1}') \\
+\langle \fv{t}\mathbf{T},\bv{t+1} \rangle   &= \langle  \fv{t},\bv{t+1}\mathbf{T}' \rangle.
 \end{split}
 \end{equation}
 Like a zipper, this adjoint relationship allows movement forward and backward in time.
@@ -248,32 +251,31 @@ The probability of $\x{t}$ and $\y$ conditional on the starting distribution $\b
 and the probability of $\x{t}$ conditional on the data and the starting distribution is
 %CHECK: if one has the $i$ to the left of the $=$ sign, one cannot talk about a distribution! 
 \begin{equation}\label{eq:cond_x|y_discr}
-Pr(\x{t}=i \given \y,\bs{\rho}) = \frac{(\fv{t})_i (\bv{t})_i}{\fv{t}\bv{t}}\,.
+Pr(\x{t}=i \given \y,\bs{\rho}) = \frac{(\fv{t})_i (\bv{t})_i}{\fv{t}\bv{t}'}\,.
 \end{equation}
 This allows calculation of the distribution of population allele frequencies conditional on the data at any time.
 
 \subsection{Sampling from conditional trajectories}
 
-% Dear Dominik! Please check the formula!
-% I do not know if I am  using $t$ and $s$ OK?!?
-
-It is possible to simulate trajectories given the initial distribution $\rho$ at time $-s$ and the likelihood at time $t=0$. Start with a sample at time $-s$ from the conditional probabilities (\ref{eq:cond_x|y_discr}). Given the state at time $t-1$ the probability of the state at time $t$ is
+% TODO Claus and Dom: We have to talk about this.
+It is possible to simulate trajectories given the initial distribution $\rho$ at time $\s$ and the likelihood at time $t=0$. Start with a sample at time $\s$ from the conditional probabilities (\ref{eq:cond_x|y_discr}). Given the state at time $t-1$ the probability of the state at time $t$ is
 \begin{equation}
-    \Pr(\x{t}=j\given \x{t-1}=i,\y)=\frac{(\mathbf{T})_{ji}(\mathbf{b}_{t})_j}{(\mathbf{b}_{t-1})_i}\,,
+    \Pr(\x{t}=j\given \x{t-1}=i,\y)=\frac{(\mathbf{T})_{ij}(\mathbf{b}_{t})_j}{(\mathbf{b}_{t-1})_i}\,,
 \end{equation}
 which can be used to obtain a sample trajectory. 
-%the formula does not contain $\rho$, which makes sense since it is a Markov process. 
+%The formula does not contain $\rho$, which makes sense since it is a Markov process. 
 
 %\end{document}
 \subsection{Left and right eigenvectors, stationary distribution}
 
-% CV: I changed the wording in the following paragraph
-Let $\bs{\pi} = (\pi_i)_{i \in \{0,\ldots,N\}}$ be the stationary distribution given $\mathbf{T}$, if it exists. $\bs{\pi}$ is the left eigenvector associated with the largest eigenvalue one
+Let $\bs{\pi} = (\pi_i)_{i \in \{0,\ldots,N\}}$ be the stationary distribution of $\mathbf{T}$, if it exists. $\bs{\pi}$ is the left eigenvector associated with the largest eigenvalue one
+% TODO: Here we need a citation that gives the prove why it is the largest.
 \begin{equation}\label{eq:stationary}
 \bs{\pi}=\bs{\pi}\mathbf{T}.
 \end{equation}
 All entries of $\bs{\pi}$ are greater than zero because the transition matrix was assumed to be irreducible and $\sum \pi_i = 1$. Thus the entries of $\bs{\pi}$ can be interpreted as probabilities. Since the rows of $\mathbf{T}$ sum to one, it is obvious that a column vector of all ones $\oneC$ is the right eigenvector associated with the unit eigenvalue. In our context, this means that iterating forward in time will converge to a vector proportional to $\bs{\pi}$ and iterating backward in time to a vector proportional to $\oneC$. % CV: The backward algorithm does not conserve the total probability mass. Hence, going backward is only proportional to $\oneR$.
-Iterating backward for a long time, every starting state is equally likely. %CV: The great mathematician Claus has really gone overboard with the last sentence ;-)
+This means that when iterating backward for a long time, every starting state is equally likely.
+%CV: The great mathematician Claus has really gone overboard with the last sentence ;-)
 
 \subsection{Reversibility}
 
@@ -283,17 +285,18 @@ Define the diagonal matrix $\mathbf{\Pi}$ with the entries $\pi_i$ on the main d
 \mathbf{T}^{*}=\mathbf{\Pi}\mathbf{T}\mathbf{\Pi}^{-1}\,.
 \end{split}
 \end{equation}
-The Markov chain is reversible, if $\mathbf{T}^{*}=\mathbf{T}'$, \ie\ if
+The Markov chain is reversible, if $\mathbf{T}^{*}=\mathbf{T}'$, because then
 \begin{align}\label{eq:detailed_balance}
-(\mathbf{T})_{ij}             &= (\mathbf{T}^{*})_{ji} \\
-                              &= (\mathbf{\Pi}\mathbf{T}\mathbf{\Pi}^{-1})_{ji} \\
-                              &= \frac{\pi_j \Pr(\x{t+1}=i \given \x{t}=j)}{\pi_i}\,.
+  \mathbf{T} &= \mathbf{T}^{*} \\
+             &= \mathbf{\Pi}\mathbf{T}\mathbf{\Pi}^{-1}, \text{ or} \\
+  \mathbf{T\Pi} &= \mathbf{\Pi T},
 \end{align}
-This condition corresponds to a balanced flow between any pair of states, \ie\ the conditions of detailed balance
-\begin{align}
-\pi_i \Pr(\x{t+1}=j \given \x{t}=i)
-                              &=  \pi_j \Pr(\x{t+1}=i \given \x{t}=j).
-\end{align}
+which corresponds to detailed balance.
+%This condition corresponds to a balanced flow between any pair of states, \ie\ the conditions of detailed balance
+% \begin{align}
+% \pi_i \Pr(\x{t+1}=j \given \x{t}=i)
+%                               &=  \pi_j \Pr(\x{t+1}=i \given \x{t}=j).
+% \end{align}
 
 We can separate $\fv{t}$ into a product of a time dependent row vector $\gv{t}$ and the stationary distribution matrix $\mathbf{\Pi}$
 \begin{equation}\label{decomp}
@@ -307,16 +310,19 @@ We can separate $\fv{t}$ into a product of a time dependent row vector $\gv{t}$ 
 \gv{t+1}             &=\gv{t}\mathbf{T}'\,.
 \end{split}
 \end{equation}
-Thus the ``backward'' transition matrix $\mathbf{T}'$ may be used forward and backward in time. We may interpret $\gv{t}$ with entries $(\gv{t})_i=\Pr(\y_{t}\given \x{t}=i)$ as a ``projected likelihood'' that, when multiplied with the stationary distribution of $x$, gives the joint distribution $\fv{t}$. Note that with the decomposition (\ref{decomp}), the likelihood becomes
+Thus the ``backward'' transition matrix $\mathbf{T}'$ may be used forward and backward in time. We may interpret $\gv{t}$
+% TODO Claus: Ich glaube, das ist nicht richtig.  Wo kommt Y her?
+% with entries $(\gv{t})_i=\Pr(\y_{t}\given \x{t}=i)$
+as a ``projected likelihood'' that, when multiplied with the stationary distribution, gives the joint distribution $\fv{t}$. Note that with the decomposition (\ref{decomp}), the likelihood becomes
 \begin{equation}
 \Pr(\y \given \bs{\rho}) = \gv{t} \mathbf{\Pi} \bv{t}.
 \end{equation}
 The adjoint relationship~(\ref{eq:adjoint_discrete}) can be modified analogously, to result in the self-adjoint relationship
 \begin{equation}\label{eq:adjoint_discrete_2}
 \begin{split}
-\langle \gv{t}\mathbf{T}'\mathbf{\Pi},\bv{t+1}'\rangle &= \langle \gv{t},\bv{t+1}'\mathbf{T}'\mathbf{\Pi} \rangle \\
+\Pr(\y \given \bs{\rho})                              &= \Pr(\y \given \bs{\rho}) \\
 \left(\gv{t}\mathbf{T}^{'}\mathbf{\Pi}\right)\bv{t+1} &= \gv{t}\left(\mathbf{\Pi} \mathbf{T} \bv{t+1}\right) \\
-\Pr(\y \given \bs{\rho})                              &= \Pr(\y \given \bs{\rho}).
+\langle \gv{t}\mathbf{T}'\mathbf{\Pi},\bv{t+1}'\rangle &= \langle \gv{t},\bv{t+1}'\mathbf{T}'\mathbf{\Pi} \rangle.
 \end{split}
 \end{equation}
 % TODO: CV: I only see that $T'\Pi$ is self-adjoint here!  Do you want to show that $T'$ is self-adjoint?

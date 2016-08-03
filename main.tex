@@ -227,11 +227,9 @@ The recursion moves the conditioning to ever earlier times. The marginal likelih
 
 The marginal likelihood (\ref{eq:marg_lh}) is constant over time $t$ 
 \begin{equation}
-\Pr(\y \given \bs{\rho}) = \fv{t}\bv{t}' =\sum_i \Pr(\x{t}=i \given \bs{\rho}) \Pr(\y \given \x{t}=i) = \langle \fv{t}, \bv{t} \rangle_{\bs{\rho}},
+\Pr(\y \given \bs{\rho}) = \fv{t}\bv{t}' =\sum_i \Pr(\x{t}=i \given \bs{\rho}) \Pr(\y \given \x{t}=i) = \langle \fv{t}, \bv{t} \rangle,
 \end{equation}
-where $\langle , \rangle>$ denotes an inner product.
-% TODO: This may be refined because the inner product depends on \rho (subscript).
-It follows that forward and backward transition matrices, \ie\ $\mathbf{T}$ and its transpose $\mathbf{T}'$, are adjoint since
+where $\langle \cdot , \cdot \rangle$ denotes an inner product.  It follows that forward and backward transition matrices, \ie\ $\mathbf{T}$ and its transpose $\mathbf{T}'$, are adjoint since
 \begin{equation}\label{eq:adjoint_discrete}
 \begin{split}
 \Pr(\y \given \bs{\rho})              &= \Pr(\y \given \bs{\rho}) \\
@@ -244,12 +242,12 @@ Like a zipper, this adjoint relationship allows movement forward and backward in
 \subsection{Joint and conditional distribution}
 
 The probability of $\x{t}$ and $\y$ conditional on the starting distribution $\bs{\rho}$ is
-%CHECK: if one has the $i$ to the left of the $=$ sign, one cannot talk about a distribution! 
+%TODO: Check if one has the $i$ to the left of the $=$ sign, one cannot talk about a distribution! 
 \begin{equation}\label{eq:joint_xy_discr}
 \Pr(\x{t}=i,\y \given \bs{\rho}) = (\fv{t})_i (\bv{t})_i\,,
 \end{equation}
 and the probability of $\x{t}$ conditional on the data and the starting distribution is
-%CHECK: if one has the $i$ to the left of the $=$ sign, one cannot talk about a distribution! 
+% TODO: Check if one has the $i$ to the left of the $=$ sign, one cannot talk about a distribution! 
 \begin{equation}\label{eq:cond_x|y_discr}
 Pr(\x{t}=i \given \y,\bs{\rho}) = \frac{(\fv{t})_i (\bv{t})_i}{\fv{t}\bv{t}'}\,.
 \end{equation}
@@ -265,7 +263,6 @@ It is possible to simulate trajectories given the initial distribution $\rho$ at
 which can be used to obtain a sample trajectory. 
 %The formula does not contain $\rho$, which makes sense since it is a Markov process. 
 
-%\end{document}
 \subsection{Left and right eigenvectors, stationary distribution}
 
 Let $\bs{\pi} = (\pi_i)_{i \in \{0,\ldots,N\}}$ be the stationary distribution of $\mathbf{T}$, if it exists. $\bs{\pi}$ is the left eigenvector associated with the largest eigenvalue one
@@ -287,9 +284,9 @@ Define the diagonal matrix $\mathbf{\Pi}$ with the entries $\pi_i$ on the main d
 \end{equation}
 The Markov chain is reversible, if $\mathbf{T}^{*}=\mathbf{T}'$, because then
 \begin{align}\label{eq:detailed_balance}
-  \mathbf{T} &= \mathbf{T}^{*} \\
+  \mathbf{T}' &= \mathbf{T}^{*} \\
              &= \mathbf{\Pi}\mathbf{T}\mathbf{\Pi}^{-1}, \text{ or} \\
-  \mathbf{T\Pi} &= \mathbf{\Pi T},
+  \mathbf{T}'\mathbf{\Pi} &= \mathbf{\Pi T},
 \end{align}
 which corresponds to detailed balance.
 %This condition corresponds to a balanced flow between any pair of states, \ie\ the conditions of detailed balance
@@ -315,20 +312,18 @@ Thus the ``backward'' transition matrix $\mathbf{T}'$ may be used forward and ba
 % with entries $(\gv{t})_i=\Pr(\y_{t}\given \x{t}=i)$
 as a ``projected likelihood'' that, when multiplied with the stationary distribution, gives the joint distribution $\fv{t}$. Note that with the decomposition (\ref{decomp}), the likelihood becomes
 \begin{equation}
-\Pr(\y \given \bs{\rho}) = \gv{t} \mathbf{\Pi} \bv{t}.
+\Pr(\y \given \bs{\rho}) = \gv{t} \mathbf{\Pi} \bv{t}'.
 \end{equation}
 The adjoint relationship~(\ref{eq:adjoint_discrete}) can be modified analogously, to result in the self-adjoint relationship
 \begin{equation}\label{eq:adjoint_discrete_2}
 \begin{split}
-\Pr(\y \given \bs{\rho})                              &= \Pr(\y \given \bs{\rho}) \\
-\left(\gv{t}\mathbf{T}^{'}\mathbf{\Pi}\right)\bv{t+1} &= \gv{t}\left(\mathbf{\Pi} \mathbf{T} \bv{t+1}\right) \\
-\langle \gv{t}\mathbf{T}'\mathbf{\Pi},\bv{t+1}'\rangle &= \langle \gv{t},\bv{t+1}'\mathbf{T}'\mathbf{\Pi} \rangle.
+\Pr(\y \given \bs{\rho})                              & = \Pr(\y \given \bs{\rho})                    \\
+(\gv{t}\mathbf{\Pi} \mathbf{T}) \bv{t+1}'             & = \gv{t}(\mathbf{T}^{'}\mathbf{\Pi}\bv{t+1}') \\
+\langle \gv{t}\mathbf{\Pi}\mathbf{T},\bv{t+1}\rangle  & = \langle \gv{t},\bv{t+1}\mathbf{\Pi}\mathbf{T} \rangle.
 \end{split}
 \end{equation}
-% TODO: CV: I only see that $T'\Pi$ is self-adjoint here!  Do you want to show that $T'$ is self-adjoint?
-% Answer: the norm includes multiplication with the stationary distribution; Song and Steinr\"ucken use 
-% self-adjointness also like this.
-% TODO: DS: Continue here. CV: Great work, dear DS, so far!!!
+
+% TODO Dom: Wed Aug  3 17:13:07 CEST 2016; Continue here. 
 
 \subsection{Example: Calculation of conditional probabilities under irreversible mutation}\label{section:irreversible}
 

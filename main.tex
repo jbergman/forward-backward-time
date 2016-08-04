@@ -327,9 +327,9 @@ The adjoint relationship~(\ref{eq:adjoint_discrete}) can be modified analogously
 
 \subsection{Example: Calculation of conditional probabilities under irreversible mutation}\label{section:irreversible}
 
-As a particular realization of a discrete process with the assumptions as in subsection~(\ref{section:assumptions}) consider a bi-allelic boundary mutation model where alleles can be labeled as either ancestral (zero) or derived (one). Mutations are assumed to occur only at the boundary zero. When a derived allele is fixed, it immediately becomes ancestral and the process repeats. This process is a variant of the infinite sites model \citep{Kimu69} and similar to the Poisson-random-fields model \citep{Sawy92}, but differs in that it allows for a stationary distribution. Using diffusion theory, \citet{Evan07} provide an analysis based on moments of the allelic proportions of a similar model with mutations from only one boundary, assuming changing population sizes, \ie\ not assuming equilibrium. \citet{Zivk15} extend the analysis to include selection. 
+As a particular realization of a discrete process consider a bi-allelic boundary mutation model where alleles can be labeled either as ancestral (zero) or derived (one). Mutation rates are assumed to be small and limited to the boundary zero, \ie\ when only ancestral alleles are present in the population such that at most one mutation is segregating per site. When a derived allele is fixed, it immediately becomes ancestral and the process repeats. This process is a variant of the infinite sites model \citep{Kimu69} and similar to the Poisson-random-fields model \citep{Sawy92}, but differs in that it allows for a stationary distribution. Using diffusion theory, \citet{Evan07} provide an analysis based on moments of the allelic proportions of a similar model with mutations from only one boundary, assuming changing population sizes, \ie\ not assuming equilibrium. \citet{Zivk15} extend the analysis to include selection. 
 
-Assume a mutation model where the mutation rate is small, such that at most one mutation is segregating per site. The transition matrix $\mathbf{T}$ is defined as follows. Given a time-homogenous mutation rate $\theta$, transition probabilities at the boundary zero are 
+The transition matrix $\mathbf{T}$ is defined as follows. Given a time-homogenous mutation rate $\theta$, transition probabilities at the boundary zero are
 \begin{equation}
 \begin{cases}
 \Pr(\x{t+1}=0\given \x{t}=0)&=1-\mu/(1-\theta\sum_{i=1}^{N-1}1/i)\\
@@ -352,7 +352,7 @@ For $i=N-1$, drift may lead to fixation of the derived allele, which then become
 \Pr(\x{t+1}=0\given \x{t}=N-1)   &=\frac1{N^2} (N-1)\,.
 \end{cases}
 \end{equation}
-The state $x=N$ is never reached and is left out of the state space. The system is not in detailed balance, as probability mass moves from $i=N-1$ to $i=0$, but not in the reverse direction.
+The state $N$ is never reached and is left out of the state space. The system is not in detailed balance, as probability mass moves from $i=N-1$ to $i=0$, but not in the reverse direction.
 
 The stationary distribution $\bs{\pi}$ is 
 \begin{equation}\label{eq_dist}
@@ -362,7 +362,9 @@ The stationary distribution $\bs{\pi}$ is
 \end{cases}
 \end{equation}
 
-As an example of a demographic scenario, consider a population with a stationary allele frequency distribution \eqref{eq_dist} defined by the mutation rate $\theta_a$ (the subscript $a$ stands for ancestral), at some time in the past $t=-s$; \ie\ $\bs{\rho} = \bs{\pi_a}$. Furthermore, assume an instantaneous change of the population size between generations $-s$ and $-s+1$. From then on, the population is out of equilibrium and evolving with a new scaled mutation rate $\theta_c$ (the subscript $c$ stands for current) until the present time ($t=0$), when we sample $M$ haplotypes from the population. Assume that the ancestral state of the sampled haplotypes can be determined without error. Thus, a polarized site frequency spectrum (SFS) may be constructed. For any value of $\theta_c$ and $M \leq N$, a transition matrix $\mathbf{T}$ can be calculated using the described framework. Furthermore, the matrix $\mathbf{T}^{'}$ can be used to iterate the conditioning of the allele frequency distribution backwards in time. As likelihood assume a hypergeometric distribution of $Y$, conditional on $N$, $i$, and $M$
+% TODO: Dominik thinks again that it might not be clear that $N$ may not correspond to N_e but is scaled together with the mutation rates.
+As an example of a demographic scenario, consider a population with a stationary allele frequency distribution \eqref{eq_dist} defined by the mutation rate $\theta_a$ (the subscript $a$ stands for ancestral), at some time $s$ in the past; \ie\ $\bs{\rho} = \bs{\pi_a}$. Furthermore, assume an instantaneous change of the population size between generations $s$ and $s+1$. From then on, the population is out of equilibrium and evolving with a new scaled mutation rate $\theta_c$ (the subscript $c$ stands for current) until the present time ($t=0$), when we sample $M$ haplotypes from the population. Assume that the ancestral state of the sampled haplotypes can be determined without error. Thus, a polarized site frequency spectrum (SFS) may be constructed. For any value of $\theta_c$ and $M \leq N$, a transition matrix $\mathbf{T}$ can be calculated using the described framework. Furthermore, the matrix $\mathbf{T}^{'}$ can be used to iterate the conditioning of the allele frequency distribution backwards in time. As likelihood assume a hypergeometric distribution of $Y$, conditional on $N$, $i$, and $M$
+% TODO: Why do we use the Hypergeometric distribution if N is scaled.  Does this make sense?
 \begin{equation}\label{X0}
 \Pr(\y=y\given N,i,M)=\frac{\binom{i}{y}\binom{N-i}{M-y}}{\binom{N}{M}}\,,
 \end{equation}

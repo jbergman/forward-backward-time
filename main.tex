@@ -323,9 +323,7 @@ The adjoint relationship~(\ref{eq:adjoint_discrete}) can be modified analogously
 \end{split}
 \end{equation}
 
-% TODO Dom: Wed Aug  3 17:13:07 CEST 2016; Continue here. 
-
-\subsection{Example: Calculation of conditional probabilities under irreversible mutation}\label{section:irreversible}
+\subsection{Example: Conditional probabilities under irreversible mutation}\label{section:irreversible}
 
 As a particular realization of a discrete process consider a bi-allelic boundary mutation model where alleles can be labeled either as ancestral (zero) or derived (one). Mutation rates are assumed to be small and limited to the boundary zero, \ie\ when only ancestral alleles are present in the population such that at most one mutation is segregating per site. When a derived allele is fixed, it immediately becomes ancestral and the process repeats. This process is a variant of the infinite sites model \citep{Kimu69} and similar to the Poisson-random-fields model \citep{Sawy92}, but differs in that it allows for a stationary distribution. Using diffusion theory, \citet{Evan07} provide an analysis based on moments of the allelic proportions of a similar model with mutations from only one boundary, assuming changing population sizes, \ie\ not assuming equilibrium. \citet{Zivk15} extend the analysis to include selection. 
 
@@ -368,12 +366,12 @@ As an example of a demographic scenario, consider a population with a stationary
 \begin{equation}\label{X0}
 \Pr(\y=y\given N,i,M)=\frac{\binom{i}{y}\binom{N-i}{M-y}}{\binom{N}{M}}\,,
 \end{equation}
-where $y$ is the allelic state ($0\leq y\leq M$) and $0\leq i\leq (N-1)$. The conditional probabilities of allelic states $\Pr(Y = y \given \bs{\rho})$, for any time $-s\leq t\leq 0$, in a site frequency spectrum of size $M$ can then be calculated (Fig.~\ref{cProb}). For inference given a SFS, the marginal likelihood can be maximized by searching the parameter spaces of $\theta_a$, $\theta_c$, and $t$.
+where $y$ is the allelic state ($0\leq y\leq M$) and $0\leq i\leq (N-1)$. The conditional probabilities of allelic states $\Pr(Y = y \given \bs{\rho})$, for any time $s\leq t\leq 0$, in a site frequency spectrum of size $M$ can then be calculated (Fig.~\ref{cProb}). For inference given a SFS, the marginal likelihood can be maximized by searching the parameter spaces of $\theta_a$, $\theta_c$, and $t$.
 
-\subsection{Example: Joint site frequency spectrum under reversible bi-allelic mutation}\label{section:discr_rev_general}
-As another realization of a discrete process with the assumptions in subsection~(\ref{section:assumptions}) consider a bi-allelic mutation-drift decoupled Moran model~\citep{Baak08,Ethe09} with parameters $N$, $\mu_0$, and $\mu_1$ ($\mu=\mu_0+\mu_1$; $\alpha=\mu_1/(\mu_0+\mu_1)$; $\beta=\mu_0/(\mu_0+\mu_1)$).
-
-Let $i$ be the frequency of the first allelic type in the population, such that $0\leq i\leq N$. Let $\mathbf{T}$ be a tri-diagonal matrix of size $N+1$ conditional on $N$, $\theta$, and $\alpha$. The parameter $\alpha$ ($0 \leq \alpha \leq 1$) quantifies the mutation bias towards the first allelic type; $1-\alpha=\beta$ the mutation bias towards the other allelic type. The transition matrix $\mathbf{T}$ is then defined as
+\subsection{Example: Joint site frequency spectrum under reversible mutation}\label{section:discr_rev_general}
+As another realization of a discrete process consider a bi-allelic mutation-drift decoupled Moran model~\citep{Baak08,Ethe09} with haploid population size $N$, mutation rate towards zero $\mu_0$ and mutation rate towards one $\mu_1$ ($\mu=\mu_0+\mu_1$).  We introduce the parameters $\alpha=\mu_1/\mu$ ($0 \leq \alpha \leq 1$) and $\beta=1-\alpha=\mu_0/(\mu_0+\mu_1)$ which are the mutation biass towards zero and one, respectively.
+% TODO: WHere does \theta come from, how does it relate to \mu?
+Let $i$ ($0\leq i\leq N$) be the frequency of allele zero, then, the transition rate matrix $\mathbf{T}$ is of size $N+1$, tri-diagonal and dependens on $N$, $\theta$ and $\alpha$
 \begin{equation}\label{eq:transition_decoupled_Moran}
 \begin{cases}
 \Pr(\x{t+1}=i-1\given \x{t}=i)&=\frac1{N^2}\left[i(N-i)+\beta\theta i\right]\\
@@ -388,8 +386,8 @@ The stationary distribution of $\x{}$ is a beta-binomial
 \frac{\Gamma(\theta)}{\Gamma(\alpha\theta)\Gamma(\beta\theta)}
 \frac{\Gamma(i+\alpha\theta)\Gamma(N-i+\beta\theta)}{\Gamma(N+\theta)}\,,
 \end{equation}
-as can be verified by substitution into the detailed balance equation (\ref{eq:detailed_balance}). 
-Conditional on the sample size $M$, where $M\leq N$, the sample allele frequency distribution at time $t=0$ is conveniently taken as a hypergeometric distribution conditional on $N$, $i$, and $M$ as in \eqref{X0}.
+which can be verified by substitution into the equations of detailed balance~\eqref{eq:detailed_balance}. 
+Conditional on the sample size $M$, where $M\leq N$, the sample allele frequency distribution at time $t=0$ is conveniently taken as a hypergeometric distribution conditional on $N$, $i$, and $M$ as in~\eqref{X0}.
 
 %\subsubsection{Sample from the stationary distribution}
 
@@ -436,11 +434,13 @@ Conditional on the sample size $M$, where $M\leq N$, the sample allele frequency
 %\end{split}
 %\end{equation}
 
-As an example, consider an ancestral population with stationary allele frequency distribution (\ref{beta_bin}) parametrized by $\alpha$, $\theta$, and $N$. The ancestral population splits into two at some time in the past $t=-s$. Assume, for simplicity, that equilibrium is maintained in both populations. A joint site frequency spectrum is simulated from both populations (Table~\ref{jointSFSdiscr}) at the present time $t=0$. The likelihood of the split time $t$ can be calculated given the joint SFS (Figure~\ref{twoPopdiscr}A).
+For an example, consider an ancestral population with stationary allele frequency distribution~\eqref{beta_bin}. The ancestral population splits into two at some time $s$ in the past. Assume, for simplicity, that equilibrium is maintained in both populations. A joint SFS is simulated from both populations (Table~\ref{jointSFSdiscr}) at the present time $t=0$. The likelihood of the split time $t$ can be calculated given the joint SFS (Figure~\ref{twoPopdiscr}A).
 
 %%%%%%%%%
 %% From here on continuous, i.e., diffusion!!!
 %%%%%%%%%
+
+% TODO Dom: Continue here.
 
 \section{Derivation of the forward and backward diffusion equations from the decoupled mutation-drift Moran model}
 

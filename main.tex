@@ -131,6 +131,7 @@ Coalescent theory \citep{King82}, on the other hand, was developed when molecula
 In regions of relatively high recombination rates compared to mutation rates, sites may be assumed to evolve independently. Usually mutation rates are so low that most sites are monomorphic (fixed), while only two bases segregate at polymorphic sites, \eg\ in \textit{Drosophila} or mammals. Due to the symmetry of the mutation processes in double-stranded DNA, cytosine and guanine bases (C and G) can be classed together and contrasted with adenine and thymine (A and T). This allows representation of data as a site frequency spectrum (SFS) for a single population or joint site frequency spectra (jSFS), for two populations that split some time in the past. 
 
 % TODO: Need to define \mu, \alpha and s.
+% TODO: Need to be consistent with nomenclature.  Either call the alleles first/second; or zero/one.  A mixture is confusing.
 For the population frequency of the first allelic type $X_t$, possible allelic states are $0\leq X_t \leq N$, where $N$ is the haploid (effective) population size. Typically, data are from the present time $t=0$. For a sample of $M$ sequences, with $M\ll N$, possible states for the sample frequency of the first allelic type $Y$ are $0\leq Y \leq M$. Data from $L$ sites can be represented as site frequency spectra. Consider a single population, \ie\ a single SFS, from the present. If equilibrium is assumed, forward processes are sufficient to model the distribution of allele frequencies. In the case of discrete models, the likelihood $\Pr(Y\given X_0)$ is conveniently assumed to be hypergeometric; in the case of the diffusion model, binomial. Assume an equilibrium %CV: or should we use "stationary distribution" here?
 distribution as prior, \ie\ $\Pr_{eq}(X\given \theta,\alpha,\dots)$, which depends on population genetic parameters, such as the scaled mutation rate $\theta=N\mu$, the mutation bias $\alpha$, or the selection strength $\gamma=Ns$. The joint distribution of population and sample allele frequencies, $X_0$ and $Y$, respectively, can be calculated by multiplying the likelihood with the prior
 \begin{equation}
@@ -440,12 +441,12 @@ For an example, consider an ancestral population with stationary allele frequenc
 %% From here on continuous, i.e., diffusion!!!
 %%%%%%%%%
 
-% TODO Dom: Continue here.
-
 \section{Derivation of the forward and backward diffusion equations from the decoupled mutation-drift Moran model}
 
+% TODO CV: A motivation might be needed here.  What is new about this derivation?  Why do we derive the diffusion equations here?
 In this section, we derive the forward and backward diffusion equation from the forward and backward transition probabilities of the decoupled Moran model and show connections between the discrete and continuous models.
 
+% TODO: This goes in line with a comment from the introduction.  We need to be consistent with nomenclature.  What is preferable: first/second allele or allele zero and one?
 Consider a focal bi-allelic site with the population frequency of the first allelic type denoted by $i$ ($1 \leq i \leq N-1$). With  the transition probabilities of the decoupled Moran model (\ref{eq:transition_decoupled_Moran}), the frequency $i$ may increase or decrease by one due to mutation or drift or remain constant. Forward in time, the difference of the probability at frequency $i$ per Moran step may be written as
 \begin{equation}\label{eq:forw_discr_mutation}
 \begin{split}
@@ -456,9 +457,10 @@ Consider a focal bi-allelic site with the population frequency of the first alle
 &\qquad-\frac{2i(N-1)\Pr(\x{t}=i)}{N^2}\bigg]\,,
 \end{split}
 \end{equation}
+% TODO CV or JB: Dominik thinks that this is misleading.  The term in the first square brackets corresponds to a mutation towards the first allelic type from (i-1) and NO mutation towards the first allelic type from (i).  The same is true for the other brackets.
 where the term in the first square brackets corresponds to mutation towards the first allelic type, that in the second to mutation to the second allelic type, and that in the third to genetic drift.
 
-To approximate the change in frequency as a continuous time and space process, the discrete time $t$ is usually replaced by $\tau = t/N^2$ and the discrete allele frequency $i$ by the proportion $x=i/N$. The average lifespan of an individual, or the generation time, is $N$ Moran time steps, such that time is now measured in units of $N$ generations. Introduce the small quantities $\delta \tau=1/N^2$ and $\delta x=1/N$ and rewrite (\ref{eq:forw_discr_mutation})
+To approximate the change in frequency as a continuous time and space process, the discrete time $t$ is usually replaced by $\tau = t/N^2$ and the discrete allele frequency $i$ by the proportion $x=i/N$. The average lifespan of an individual or the generation time in the Wright-Fisher model corresponds to $N$ Moran time steps, such that after rescaling time is measured in units of $N$ Wright-Fisher generations. We introduce the quantities $\delta \tau=1/N^2$ and $\delta x=1/N$ and rewrite (\ref{eq:forw_discr_mutation})
 \begin{equation}\label{eq:forw_cont_mutation}
 \begin{split}
 &\frac{\Pr(\x{\tau+\delta \tau}=x)-\Pr(\x{\tau}=x)}{\delta \tau} =\\ &\qquad\alpha\theta \bigg[\frac{(1-x+\delta x)\Pr(\x{\tau}=x-\delta x) - (1-x)\Pr(\x{\tau}=x)}{\delta x}\bigg]\\
@@ -469,10 +471,12 @@ To approximate the change in frequency as a continuous time and space process, t
 \end{equation}
 
 In the limit $N \to \infty$, the term to the left of the equality sign of (\ref{eq:forw_cont_mutation}) corresponds to the definition of the first derivative with respect to time $\tau$ of $\Pr(\x{\tau}=x)$; the first two terms in square brackets after the equality sign correspond to the first derivatives with respect to $x$ of $-(1-x)\Pr(\x{\tau}=x)$ and $x\Pr(\x{\tau}=x)$, respectively; the term in the last square bracket correspond to the definition of the second symmetric derivative with respect to $x$ of $x(1-x)\Pr(\x{\tau}=x)$.  After minor rearrangements and setting $\phi(x,\tau)=\Pr(\x{\tau}=x)$, the familiar form of the forward mutation-drift diffusion equation is obtained:
+% TODO All: If a mathematician reviews the paper, we might get into trouble here because Pr(X_tau = x) is zero for continuous variables.  Rather, Phi is the probability that the population is in state [x, x+dx] during the time [t, t+dt].  I do not know how to handle this subtlety.
 \begin{equation}\label{eq:forw_mutdrift}
 \frac{\partial}{\partial \tau} \phi(x,\tau) = -\frac{\partial}{\partial x}\theta(\alpha-x)\phi(x,\tau) +\frac{\partial^2}{\partial x^2}x(1-x)\phi(x,\tau).
 \end{equation}
 
+% TODO CV: Dominik thinks that there is no sampling step involved in the backward diffusion equation.  We may want to use X_0 instead of Y.
 Considering the Moran model backward in time (see subsection~\ref{section:backward}), the change in frequency $i$ is determined by the transpose of the forward transition matrix (\ref{eq:transition_decoupled_Moran}) and can be written as
 \begin{equation}\label{eq:back_discr_mutation}
 \begin{split}
@@ -484,14 +488,13 @@ Considering the Moran model backward in time (see subsection~\ref{section:backwa
 \end{split}
 \end{equation}
 
-After rescaling time and space and considering the limit $N \to \infty$ the backward diffusion equation
+After rescaling time and space, considering the limit $N \to \infty$ and defining $\psi(x,\tau)=\lim_{N\to\infty}\Pr(\y\given\x{\tau}=x)$ we get the backward diffusion equation
 \begin{equation}\label{eq:backw_mutdrift}
 -\frac{\partial}{\partial \tau} \psi(x,\tau) =
-    \theta(\alpha-x)\frac{\partial}{\partial x} \psi(x,\tau) +x(1-x)\frac{\partial^2}{\partial x^2}\psi(x,\tau)
+    \theta(\alpha-x)\frac{\partial}{\partial x} \psi(x,\tau) +x(1-x)\frac{\partial^2}{\partial x^2}\psi(x,\tau).
 \end{equation}
-can be obtained from (\ref{eq:back_discr_mutation}), where $\psi(x,\tau)=\lim_{N\to\infty}\Pr(\y\given\x{\tau}=x)$.
 
-We note that these derivations of the forward and backward diffusion equations from the decoupled Moran model are simpler than the usual derivations from the Wright-Fisher model \citep{Ewen04}; terms higher than the first derivative with respect to time and second derivative with respect to space do not occur. They also clearly show the tight relationships between the forward and backward discrete and continuous transition probabilities. Note the unusual minus sign on the left side of the backward diffusion equation (\ref{eq:backw_mutdrift}). It is necessary such that the time $\tau$ runs in the same direction in the forward and backward diffusion equations.
+These derivations of the forward and backward diffusion equations from the decoupled Moran model are simpler than the usual derivations from the Wright-Fisher model \citep{Ewen04}; terms higher than the first derivative with respect to time and second derivative with respect to space do not occur. They also clearly show the tight relationships between the forward and backward discrete and continuous transition probabilities. Note the unusual minus sign on the left side of the backward diffusion equation (\ref{eq:backw_mutdrift}). It is necessary such that the time $\tau$ runs in the same direction in the forward and backward diffusion equations.
 
 %TODO: return to the assumptions and specify modifications for the continuous case.
 

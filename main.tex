@@ -87,8 +87,6 @@
 \newcommand\gv[1]{\ensuremath{\mathbf{g}_{#1}}}
 \newcommand\oneC{\ensuremath{\mathbf{1}'}}
 \newcommand\oneR{\ensuremath{\mathbf{1}}}
-% TODO: Juraj, please ignore the following line.
-% CV: I associate "bs" with "bullshit"! This comment should be ignored by serious persons.
 
 \begin{document}
 
@@ -131,17 +129,14 @@ Coalescent theory \citep{King82}, on the other hand, was developed when molecula
 In regions of relatively high recombination rates compared to mutation rates, sites may be assumed to evolve independently. Usually mutation rates are so low that most sites are monomorphic (fixed), while only two bases segregate at polymorphic sites, \eg\ in \textit{Drosophila} or mammals. Due to the symmetry of the mutation processes in double-stranded DNA, cytosine and guanine bases (C and G) can be classed together and contrasted with adenine and thymine (A and T). This allows representation of data as a site frequency spectrum (SFS) for a single population or joint site frequency spectra (jSFS), for two populations that split some time in the past. 
 
 % TODO: Need to define \mu, \alpha and s.
-% TODO: Need to be consistent with nomenclature.  Either call the alleles first/second; or zero/one.  A mixture is confusing.
-For the population frequency of the first allelic type $X_t$, possible allelic states are $0\leq X_t \leq N$, where $N$ is the haploid (effective) population size. Typically, data are from the present time $t=0$. For a sample of $M$ sequences, with $M\ll N$, possible states for the sample frequency of the first allelic type $Y$ are $0\leq Y \leq M$. Data from $L$ sites can be represented as site frequency spectra. Consider a single population, \ie\ a single SFS, from the present. If equilibrium is assumed, forward processes are sufficient to model the distribution of allele frequencies. In the case of discrete models, the likelihood $\Pr(Y\given X_0)$ is conveniently assumed to be hypergeometric; in the case of the diffusion model, binomial. Assume an equilibrium %CV: or should we use "stationary distribution" here?
+For the population frequency of allele zero $X_t$, possible allelic states are $0\leq X_t \leq N$, where $N$ is the haploid (effective) population size. Typically, data are from the present time $t=0$. For a sample of $M$ sequences, with $M\ll N$, possible states for the sample frequency of allele zero $Y$ are $0\leq Y \leq M$. Data from $L$ sites can be represented as site frequency spectra. Consider a single population, \ie\ a single SFS, from the present. If equilibrium is assumed, forward processes are sufficient to model the distribution of allele frequencies. In the case of discrete models, the likelihood $\Pr(Y\given X_0)$ is conveniently assumed to be hypergeometric; in the case of the diffusion model, binomial. Assume an equilibrium %CV: or should we use "stationary distribution" here?
 distribution as prior, \ie\ $\Pr_{eq}(X\given \theta,\alpha,\dots)$, which depends on population genetic parameters, such as the scaled mutation rate $\theta=N\mu$, the mutation bias $\alpha$, or the selection strength $\gamma=Ns$. The joint distribution of population and sample allele frequencies, $X_0$ and $Y$, respectively, can be calculated by multiplying the likelihood with the prior
 \begin{equation}
  \Pr(X_0,Y\given \theta,\alpha,\dots)=\Pr(Y\given X_0){\Pr}_{eq} (X_{0}\given \theta,\alpha,\dots)\,.
 \end{equation}
 Integrating over the population allele frequency $X_0$, the marginal likelihood $\Pr(Y\given \theta,\alpha,\dots)$ may be obtained and maximum likelihood inference of population genetic parameters is possible \citep{Vogl14b,Vogl15}. This strategy may also be viewed as the empirical Bayes method \citep[\eg][]{Carl00}.
 
-% FIXME DS: Add proper citation for PoMo if paper gets accepted.
-% TODO Claus: This is confusing.  PoMo uses a virtual population size N; but here, N is the effective population size, so M can never be larger than N.
-With data from two or more populations that split some time in the past, \ie\ with jSFS, inference is more complicated. Models iterating forward in time, \eg\ the Wright-Fisher and the Moran models or continuous diffusion models, have rarely been used for this task. An exception is the forward iteration of a Moran model in phylogenetic inference \citep{DeMaio2015}. In this case, summation over all $N+1$ ancestral states is necessary at each node, \ie\ at each binary split into two populations. Such summation becomes difficult with large $N$. Therefore, mutation rates are scaled such that $N$ can be taken small.  But note that information is inevitably lost if $M>N$. Sample sizes $M$ can be large for sequence data from pooled individuals or from many populations. Such data are therefore difficult to analyze accurately with forward methods. Note that diagonalization of the transition matrix is necessary for numerical efficiency. 
+With data from two or more populations that split some time in the past, \ie\ with jSFS, inference is more complicated. Models iterating forward in time, \eg\ the Wright-Fisher and the Moran models or continuous diffusion models, have rarely been used for this task. An exception is the forward iteration of a Moran model in phylogenetic inference \citep{Schrempf2016}. In this case, summation over all $N+1$ ancestral states is necessary at each node, \ie\ at each binary split into two populations. Such summation becomes difficult with large $N$. Therefore, mutation rates are scaled such that $N$ can be taken small.  But note that information is inevitably lost if $M>N$. Sample sizes $M$ can be large for sequence data from pooled individuals or from many populations. Such data are therefore difficult to analyze accurately with forward methods. Note that diagonalization of the transition matrix is necessary for numerical efficiency. 
 
 Backward processes allow pushing the conditioning on the population allele frequency backward in time, \ie\ they allow calculation of the likelihood $\Pr(Y\given X_t, \dots)$ with $t<0$. Backward processes consist of, in the discrete case, iteration of the transpose of the forward transition matrix; in the continuous case, of the backward diffusion equation. Combining the forward and backward processes in the forward-backward algorithm, the probability distribution of population allele frequencies conditional on the sample allele frequencies $\Pr(X_t\given Y,\dots)$ can be inferred at all times $t$ until present and the distribution of trajectories may be simulated. This may be an aim in itself. Additionally, it is thus possible to calculate the marginal likelihoods of samples from multiple splitting populations, \ie\ from jSFS.
 
@@ -153,12 +148,9 @@ In this article, we use backward processes to conveniently calculate probabiliti
 
 \subsection{Assumptions}\label{section:assumptions}
 \begin{enumerate}[(i)]
-\item Assume a population of large (effective) size $N$ and some bi-allelic mutation model. The time-dependent frequency of the first of the two allelic types in the population is denoted $\x{t}$ ($0 \le \x{t} \le N$) and is assumed to evolve as a discrete, time-homogeneous Markov chain with transition probability matrix $\mathbf{T}$, where $(T_{ij})_{i,j \in \{0, \ldots, N\}} = \Pr(\x{t+1}=j \given \x{t}=i)$.  The rows of $\mathbf{T}$ sum to one and it is irreducible and aperiodic.
-\item At a (possibly unknown) time $t=\s$ ($\s<0$) in the past, a distribution of frequencies is given by $\bs{\rho}$ with entries $(\rho_{i})_{i \in \{0, \ldots, N\}} = \Pr(\x{\s}=i)$.
-% TODO:  I think the paragraph belongs to the respective problems.
-%CV: And what should be here? We need some assumptions. We may take out the next sentence, but it does clarify, as far as I can see?!?
-In particular, $\bs{\rho}$ may be the stationary distribution of the forward process $\bs{\pi}=(\pi_i)_{i \in \{0, \ldots, N\}}$ or may correspond to a joint distribution of some other data and the equilibrium allele frequency distribution. 
-\item The population evolves until the present time $t=0$, when a sample of size $M$ is drawn.  We denote the frequency of the first allele as $\y$ ($0 \le \y \le M$). The likelihood of observing $\y$ is given by $\Pr(\y \given M, \x{0})$ (we may leave away the dependency on $M$ in the following) and will be defined according to the application.
+\item Assume a population of large (effective) size $N$ and some bi-allelic mutation model. The time-dependent frequency of allele zero in the population is denoted $\x{t}$ ($0 \le \x{t} \le N$) and is assumed to evolve as a discrete, time-homogeneous Markov chain with transition probability matrix $\mathbf{T}$, where $(T_{ij})_{i,j \in \{0, \ldots, N\}} = \Pr(\x{t+1}=j \given \x{t}=i)$.  The rows of $\mathbf{T}$ sum to one and it is irreducible and aperiodic.
+\item At a (possibly unknown) time $t=\s$ ($\s<0$) in the past, a distribution of frequencies is given by $\bs{\rho}$ with entries $(\rho_{i})_{i \in \{0, \ldots, N\}} = \Pr(\x{\s}=i)$.  In particular, $\bs{\rho}$ may be the stationary distribution of the forward process $\bs{\pi}=(\pi_i)_{i \in \{0, \ldots, N\}}$ or may correspond to a joint distribution of some other data and the equilibrium allele frequency distribution. 
+\item The population evolves until the present time $t=0$, when a sample of size $M$ is drawn.  We denote the sampled frequency of allele zero as $\y$ ($0 \le \y \le M$). The likelihood of observing $\y$ is given by $\Pr(\y \given M, \x{0})$ (we may leave away the dependency on $M$ in the following) and will be defined according to the application.
 \end{enumerate}
 
 For two populations, assumptions (ii) and (iii) are modified:
@@ -168,14 +160,9 @@ For two populations, assumptions (ii) and (iii) are modified:
 \item The two populations evolve independently until the present time $t=0$, when samples of sizes $M_1$ and $M_2$ are drawn from these two populations.
 \end{enumerate}
 
-% TODO: (?).
-% For continuous models, we use the notation $y$ for the frequency of allele one in the sample and $x$ for the population allelic proportion such that $\Pr(y\given x,t)=\lim_{N\to\infty}\Pr(\y\given\x{t}=x)$. Furthermore, $\pi(x)$ corresponds to the stationary distribution. 
-
 \subsection{Forward in time}
 
-Often, our data are from the present and we want to condition on the configuration of allele frequencies at earlier times.  We introduce the row vector $\fv{t}$ with entries $(\fv{t})_{i} = \Pr(X_{t} = i)$ and set $\fv{\s} = \bs{\rho}$, \ie the vector of initial probabilities of states. We can calculate the vector of probabilities of states recursively 
-% TODO: Describe the vector f, so that readers can understand.
-%CV: I tried; please check!
+Often, our data are from the present and we want to condition on the configuration of allele frequencies at earlier times.  We introduce the row vector $\fv{t}$ with entries $(\fv{t})_{i} = \Pr(X_{t} = i)$ and set $\fv{\s} = \bs{\rho}$, \ie\ to the vector of initial probabilities of states. We can calculate the vector of probabilities of states recursively 
 \begin{equation}
 \fv{t+1} = \fv{t}\mathbf{T} \quad (\s \le t \le -1).
 \end{equation}
@@ -192,20 +179,6 @@ Using a strategy as with the backward algorithm in the theory of HMM, set $\bv{0
 \bv{t}' = \mathbf{T} \bv{t+1}' \quad (\s \le t \le -1),
 \end{split}
 \end{equation}
-% TODO: Claus: Do we really need this?
-% If it is clear, we do not!
-% Note, that
-% \begin{equation}\label{eq:backwards_matrix}
-% \begin{split}
-% \bv{-t}  &= \mathbf{T}^t \mathbf{D}\oneC \text{, and} \\
-% \bv{-t}' &= \oneR \mathbf{D} (\mathbf{T}')^t.
-% % \bv{-\s} &= \overbrace{\mathbf{T}\mathbf{T}\cdots\mathbf{T}\mathbf{T}}^{\s} \mathbf{D}\oneC \\
-% %         &= (\mathbf{T}(\mathbf{T}(\cdots(\mathbf{T}(\mathbf{T}(\mathbf{D}\oneC)))\cdots)))
-% %            \text{, and} \\
-% % \bv{-\s}' &=\oneR \mathbf{D}\mathbf{T}'\mathbf{T}'\cdots\mathbf{T}'\mathbf{T}'\mathbf{T}'\mathbf{T}'.
-% \end{split}
-% \end{equation}
-% We find that $\bv{t}$ $(-\s \le t \le 0)$ is a column vector.
 which can also be written as
 \begin{equation}\label{eq:backwards_discrete}
 \begin{split}
@@ -245,12 +218,10 @@ Like a zipper, this adjoint relationship allows movement forward and backward in
 \subsection{Joint and conditional distribution}
 
 The probability of $\x{t}$ and $\y$ conditional on the starting distribution $\bs{\rho}$ is
-%TODO: Check if one has the $i$ to the left of the $=$ sign, one cannot talk about a distribution! 
 \begin{equation}\label{eq:joint_xy_discr}
 \Pr(\x{t}=i,\y \given \bs{\rho}) = (\fv{t})_i (\bv{t})_i\,,
 \end{equation}
 and the probability of $\x{t}$ conditional on the data and the starting distribution is
-% TODO: Check if one has the $i$ to the left of the $=$ sign, one cannot talk about a distribution! 
 \begin{equation}\label{eq:cond_x|y_discr}
 Pr(\x{t}=i \given \y,\bs{\rho}) = \frac{(\fv{t})_i (\bv{t})_i}{\fv{t}\bv{t}'}\,.
 \end{equation}
@@ -258,7 +229,7 @@ This allows calculation of the distribution of population allele frequencies con
 
 \subsection{Sampling from conditional trajectories}
 
-% TODO Claus and Dom: We have to talk about this.
+% TODO CV and DS: We have to talk about this.
 It is possible to simulate trajectories given the initial distribution $\rho$ at time $\s$ and the likelihood at time $t=0$. Start with a sample at time $\s$ from the conditional probabilities (\ref{eq:cond_x|y_discr}). Given the state at time $t-1$ the probability of the state at time $t$ is
 \begin{equation}
     \Pr(\x{t}=j\given \x{t-1}=i,\y)=\frac{(\mathbf{T})_{ij}(\mathbf{b}_{t})_j}{(\mathbf{b}_{t-1})_i}\,,
@@ -268,8 +239,7 @@ which can be used to obtain a sample trajectory.
 
 \subsection{Left and right eigenvectors, stationary distribution}
 
-Let $\bs{\pi} = (\pi_i)_{i \in \{0,\ldots,N\}}$ be the stationary distribution of $\mathbf{T}$, if it exists. $\bs{\pi}$ is the left eigenvector associated with the largest eigenvalue one
-% TODO: Here we need a citation that gives the prove why it is the largest.
+Let $\bs{\pi} = (\pi_i)_{i \in \{0,\ldots,N\}}$ be the stationary distribution of $\mathbf{T}$, if it exists. $\bs{\pi}$ is the left eigenvector associated with the largest eigenvalue one~\citep[][p. 87]{Ewen04}
 \begin{equation}\label{eq:stationary}
 \bs{\pi}=\bs{\pi}\mathbf{T}.
 \end{equation}
@@ -311,10 +281,12 @@ Under reversibility, we have forward in time
 \end{split}
 \end{equation}
 Thus the ``backward'' transition matrix $\mathbf{T}'$ may be used forward and backward in time. We may interpret $\gv{t}$
-% TODO Claus: Ich glaube, das ist nicht richtig.  Wo kommt Y her?
-% with entries: CV: ich glaube:
+% with entries:
+% TODO CV and DS:
+% DS: Ich glaube, das ist nicht richtig.  Wo kommt Y her?
+% CV: ich glaube:
 % $(\gv{t})_i=\Pr(\y_{t}\given y_{s},y_{s+1},\dots,y_{t-1},\x{t}=i)$
-%
+% DS: ist Y nicht das Sample?  Macht es Sinn Y_t zu schreiben?  Ich interpretiere g_t als ein Maß für die Entfernung vom stationären Zustand.  Ich bin mir nicht sicher, ob man dieses Maß als Likelihood oder Wahrscheinlichkeit interpretieren kann. 
 as a ``projected likelihood'' that, when multiplied with the stationary distribution, gives the joint distribution $\fv{t}$. Note that with the decomposition (\ref{decomp}), the likelihood becomes
 \begin{equation}
 \Pr(\y \given \bs{\rho}) = \gv{t} \mathbf{\Pi} \bv{t}'.
@@ -365,11 +337,12 @@ The stationary distribution $\bs{\pi}$ is
 \end{cases}
 \end{equation}
 
-% TODO: Dominik thinks again that it might not be clear that $N$ may not correspond to N_e but is scaled together with the mutation rates.
+% TODO CV: Dominik thinks again that it might not be clear that $N$ may not correspond to N_e but is scaled together with the mutation rates.
 % CV: maybe we should put this into the assumptions!
 As an example of a demographic scenario, consider a population with a stationary allele frequency distribution \eqref{eq_dist} defined by the mutation rate $\theta_a$ (the subscript $a$ stands for ancestral), at some time $s$ in the past; \ie\ $\bs{\rho} = \bs{\pi_a}$. Furthermore, assume an instantaneous change of the population size between generations $s$ and $s+1$. From then on, the population is out of equilibrium and evolving with a new scaled mutation rate $\theta_c$ (the subscript $c$ stands for current) until the present time ($t=0$), when we sample $M$ haplotypes from the population. Assume that the ancestral state of the sampled haplotypes can be determined without error. Thus, a polarized site frequency spectrum (SFS) may be constructed. For any value of $\theta_c$ and $M \leq N$, a transition matrix $\mathbf{T}$ can be calculated using the described framework. Furthermore, the matrix $\mathbf{T}^{'}$ can be used to iterate the conditioning of the allele frequency distribution backwards in time. As likelihood assume a hypergeometric distribution of $Y$, conditional on $N$, $i$, and $M$
-% TODO: Why do we use the Hypergeometric distribution if N is scaled.  Does this make sense?
+% TODO CV: Why do we use the Hypergeometric distribution if N is scaled.  Does this make sense?
 % CV: mathematical convenience rules!
+% DS: I would use the binomial (with replacement), this might make more sense if the true N is large.
 \begin{equation}\label{X0}
 \Pr(\y=y\given N,i,M)=\frac{\binom{i}{y}\binom{N-i}{M-y}}{\binom{N}{M}}\,,
 \end{equation}
@@ -377,7 +350,7 @@ where $y$ is the allelic state ($0\leq y\leq M$) and $0\leq i\leq (N-1)$. The co
 
 \subsection{Example: Joint site frequency spectrum under reversible mutation}\label{section:discr_rev_general}
 As another realization of a discrete process consider a bi-allelic mutation-drift decoupled Moran model~\citep{Baak08,Ethe09} with haploid population size $N$, mutation rate towards zero $\mu_0$ and mutation rate towards one $\mu_1$ ($\mu=\mu_0+\mu_1$).  We introduce the parameters $\alpha=\mu_1/\mu$ ($0 \leq \alpha \leq 1$) and $\beta=1-\alpha=\mu_0/(\mu_0+\mu_1)$ which are the mutation biases towards zero and one, respectively.
-% TODO: WHere does \theta come from, how does it relate to \mu?
+% TODO JB: Where does \theta come from, how does it relate to \mu?
 Let $i$ ($0\leq i\leq N$) be the frequency of allele zero, then, the transition rate matrix $\mathbf{T}$ is of size $N+1$, tri-diagonal and depends on $N$, $\theta$ and $\alpha$
 \begin{equation}\label{eq:transition_decoupled_Moran}
 \begin{cases}
@@ -441,7 +414,7 @@ Conditional on the sample size $M$, where $M\leq N$, the sample allele frequency
 %\end{split}
 %\end{equation}
 
-For an example, consider an ancestral population with stationary allele frequency distribution~\eqref{beta_bin}. The ancestral population splits into two at some time $s$ in the past. Assume, for simplicity, that equilibrium is maintained in both populations. A joint SFS is simulated from both populations (Table~\ref{jointSFSdiscr}) at the present time $t=0$. The likelihood of the split time $t$ can be calculated given the joint SFS (Figure~\ref{twoPopdiscr}A).
+For an example, consider an ancestral population with stationary allele frequency distribution~\eqref{beta_bin}. The ancestral population splits into two at some time $s$ in the past. Assume, for simplicity, that equilibrium is maintained in both populations. A jSFS is simulated from both populations (Table~\ref{jointSFSdiscr}) at the present time $t=0$. The likelihood of the split time $t$ can be calculated given the jSFS (Figure~\ref{twoPopdiscr}A).
 
 %%%%%%%%%
 %% From here on continuous, i.e., diffusion!!!
@@ -449,12 +422,10 @@ For an example, consider an ancestral population with stationary allele frequenc
 
 \section{Derivation of the forward and backward diffusion equations from the decoupled mutation-drift Moran model}
 
-% TODO CV: A motivation might be needed here.  What is new about this derivation?  Why do we derive the diffusion equations here?
+% TODO CV or JB: A motivation might be needed here.  What is new about this derivation?  Why do we derive the diffusion equations here?
 In this section, we derive the forward and backward diffusion equation from the forward and backward transition probabilities of the decoupled Moran model and show connections between the discrete and continuous models.
 
-% TODO: This goes in line with a comment from the introduction.  We need to be consistent with nomenclature.  What is preferable: first/second allele or allele zero and one?
-% CV: for mathematics, it has to be 0 and 1. 
-Consider a focal bi-allelic site with the population frequency of the first allelic type denoted by $i$ ($1 \leq i \leq N-1$). With  the transition probabilities of the decoupled Moran model (\ref{eq:transition_decoupled_Moran}), the frequency $i$ may increase or decrease by one due to mutation or drift or remain constant. Forward in time, the difference of the probability at frequency $i$ per Moran step may be written as
+Consider a focal bi-allelic site with the population frequency of allele zero denoted by $i$ ($1 \leq i \leq N-1$). With the transition probabilities of the decoupled Moran model (\ref{eq:transition_decoupled_Moran}), the frequency $i$ may increase or decrease by one due to mutation or drift or remain constant. Forward in time, the difference of the probability at frequency $i$ per Moran step may be written as
 \begin{equation}\label{eq:forw_discr_mutation}
 \begin{split}
 &\Pr(\x{t+1}=i)-\Pr(\x{t}=i) = \\
@@ -464,9 +435,10 @@ Consider a focal bi-allelic site with the population frequency of the first alle
 &\qquad-\frac{2i(N-1)\Pr(\x{t}=i)}{N^2}\bigg]\,,
 \end{split}
 \end{equation}
-% TODO CV or JB: Dominik thinks that this is misleading.  The term in the first square brackets corresponds to a mutation towards the first allelic type from (i-1) and NO mutation towards the first allelic type from (i).  The same is true for the other brackets.
+% TODO CV or JB: Dominik thinks that this is misleading.  The term in the first square brackets corresponds to a mutation towards allele zero from (i-1) and NO mutation towards allele zero from (i).  The same is true for the other brackets.
 % CV: is it less misleading now?!?
-where the term in the first square brackets corresponds to mutation towards the first allelic type from state $i-1$, that in the second to mutation to the second allelic type from state $i+1$, and that in the third to genetic drift.
+% DS: I tried to make it more clear.  Is it OK?
+where the first square brackets contrasts mutation towards allele zero, the second mutation towards allele one, and the third genetic drift.
 
 To approximate the change in frequency as a continuous time and space process, the discrete time $t$ is usually replaced by $\tau = t/N^2$ and the discrete allele frequency $i$ by the proportion $x=i/N$. The average lifespan of an individual or the generation time in the Wright-Fisher model corresponds to $N$ Moran time steps, such that after rescaling time is measured in units of $N$ Wright-Fisher generations. We introduce the quantities $\delta \tau=1/N^2$ and $\delta x=1/N$ and rewrite (\ref{eq:forw_discr_mutation})
 \begin{equation}\label{eq:forw_cont_mutation}
@@ -478,27 +450,29 @@ To approximate the change in frequency as a continuous time and space process, t
 \end{split}
 \end{equation}
 
-In the limit $N \to \infty$, the term to the left of the equality sign of (\ref{eq:forw_cont_mutation}) corresponds to the definition of the first derivative with respect to time $\tau$ of $\Pr(\x{\tau}=x)$; the first two terms in square brackets after the equality sign correspond to the first derivatives with respect to $x$ of $-(1-x)\Pr(\x{\tau}=x)$ and $x\Pr(\x{\tau}=x)$, respectively; the term in the last square bracket corresponds to the definition of the second symmetric derivative with respect to $x$ of $x(1-x)\Pr(\x{\tau}=x)$.  After minor rearrangements and setting $\phi(x,\tau)=\Pr(\x{\tau}=x)$, the familiar form of the forward mutation-drift diffusion equation is obtained:
+In the limit $N \to \infty$, the term to the left of the equality sign of (\ref{eq:forw_cont_mutation}) corresponds to the definition of the first derivative with respect to time $\tau$ of $\Pr(\x{\tau}=x)$; the first two terms in square brackets after the equality sign correspond to the first derivatives with respect to $x$ of $-(1-x)\Pr(\x{\tau}=x)$ and $x\Pr(\x{\tau}=x)$, respectively; the term in the last square bracket corresponds to the definition of the second symmetric derivative with respect to $x$ of $x(1-x)\Pr(\x{\tau}=x)$.  After minor rearrangements and setting $\phi(x,\tau)$ to the probability density at frequency $x$ and time $\tau$, the familiar form of the forward mutation-drift diffusion equation is obtained:
 % TODO All: If a mathematician reviews the paper, we might get into trouble here because Pr(X_tau = x) is zero for continuous variables.  Rather, Phi is the probability that the population is in state [x, x+dx] during the time [t, t+dt].  I do not know how to handle this subtlety.
 % CV: if we just leave away the equation within the previous sentence, I would think we are fine. The equation below is standard!
+% DS: I tried to use words instead of a formula.  Is this fine?
 \begin{equation}\label{eq:forw_mutdrift}
 \frac{\partial}{\partial \tau} \phi(x,\tau) = -\frac{\partial}{\partial x}\theta(\alpha-x)\phi(x,\tau) +\frac{\partial^2}{\partial x^2}x(1-x)\phi(x,\tau).
 \end{equation}
 
 % TODO CV: Dominik thinks that there is no sampling step involved in the backward diffusion equation.  We may want to use X_0 instead of Y.
 % CV: you are right; we should use X_0. I changed nothing yet...
+% DS: I changed it, please check.
 Considering the Moran model backward in time (see subsection~\ref{section:backward}), the change in frequency $i$ is determined by the transpose of the forward transition matrix (\ref{eq:transition_decoupled_Moran}) and can be written as
 \begin{equation}\label{eq:back_discr_mutation}
 \begin{split}
-&\Pr(\y\given\x{t}=i)-\Pr(\y\given\x{t+1}=i) = \\
-&\qquad \alpha \theta (N-i) \bigg[\frac{\Pr(\y\given\x{t+1}=i+1)-\Pr(\y\given\x{t+1}=i)}{N^2}\bigg]\\
-&\qquad+\beta \theta i \bigg[\frac{\Pr(\y\given\x{t+1}=i-1)-\Pr(\y\given\x{t+1}=i)}{N^2}\bigg]\\
-&\qquad+i(N-i) \bigg[\frac{\Pr(\y\given\x{t+1}=i+1)}{N^2}+\frac{\Pr(\y\given\x{t+1}=i-1)}{N^2}\\
-&\qquad\qquad-\frac{2\Pr(\y\given\x{t+1}=i)}{N^2}\bigg]\,.
+&\Pr(\x{0} \given\x{t}=i)-\Pr(\x{0}\given\x{t+1}=i) = \\
+&\qquad \alpha \theta (N-i) \bigg[\frac{\Pr(\x{0}\given\x{t+1}=i+1)-\Pr(\x{0}\given\x{t+1}=i)}{N^2}\bigg]\\
+&\qquad+\beta \theta i \bigg[\frac{\Pr(\x{0}\given\x{t+1}=i-1)-\Pr(\x{0}\given\x{t+1}=i)}{N^2}\bigg]\\
+&\qquad+i(N-i) \bigg[\frac{\Pr(\x{0}\given\x{t+1}=i+1)}{N^2}+\frac{\Pr(\x{0}\given\x{t+1}=i-1)}{N^2}\\
+&\qquad\qquad-\frac{2\Pr(\x{0}\given\x{t+1}=i)}{N^2}\bigg]\,.
 \end{split}
 \end{equation}
 
-After rescaling time and space, considering the limit $N \to \infty$ and defining $\psi(x,\tau)=\lim_{N\to\infty}\Pr(\y\given\x{\tau}=x)$ we get the backward diffusion equation
+After rescaling time and space, considering the limit $N \to \infty$ and defining $\psi(x,\tau)=\lim_{N\to\infty}\Pr(\x{0}\given\x{\tau}=x)$ we get the backward diffusion equation
 \begin{equation}\label{eq:backw_mutdrift}
 -\frac{\partial}{\partial \tau} \psi(x,\tau) =
     \theta(\alpha-x)\frac{\partial}{\partial x} \psi(x,\tau) +x(1-x)\frac{\partial^2}{\partial x^2}\psi(x,\tau).
@@ -506,10 +480,13 @@ After rescaling time and space, considering the limit $N \to \infty$ and definin
 
 These derivations of the forward and backward diffusion equations from the decoupled Moran model are simpler than the usual derivations from the Wright-Fisher model \citep{Ewen04}; terms higher than the first derivative with respect to time and second derivative with respect to space do not occur. They also clearly show the tight relationships between the forward and backward discrete and continuous transition probabilities. Note the unusual minus sign on the left side of the backward diffusion equation (\ref{eq:backw_mutdrift}). It is necessary such that the time $\tau$ runs in the same direction in the forward and backward diffusion equations.
 
-%TODO: return to the assumptions and specify modifications for the continuous case.
+%TODO JB: Return to the assumptions and specify modifications for the continuous case.
+
+% For continuous models, we use the notation $y$ for the frequency of allele one in the sample and $x$ for the population allelic proportion such that $\Pr(y\given x,t)=\lim_{N\to\infty}\Pr(\y\given\x{t}=x)$. Furthermore, $\pi(x)$ corresponds to the stationary distribution. 
 
 It is straightforward to modify the assumptions in section \ref{section:assumptions} to continuous time.
 
+% TODO DS: Continue here.
 \section{Forward and backward diffusion equations}
 
 Generally, the forward diffusion equation can be written as
@@ -714,8 +691,6 @@ Substituting $\sum_iT_i(\tau) H_i(x)$ into the forward differential equation (\r
 \begin{equation}\label{eq:inhomogeneous}
     \frac{d}{d\tau}T_i(\tau)=-\lambda T_i(\tau)-\theta (2i-1)i(-1)^i\,.
 \end{equation}
-%\todo[inline]{Check that the equilibrium solution of (\ref{eq:inhomogeneous}) corresponds to $\pi(x)$!}
-%CV: I actually checked this equation with (A10) in Vogl & Bergman 16; seems fine.
 
 Consider a sample of size $M=2$, where $y=0$, $y=1$, or $y=2$ and assume stationarity. The likelihoods are $\Pr(y\given M=2)=\binom{2}{y}x^{y}(1-x)^{M-y}$ such that the joint probabilities under stationarity are for $y=1$: $\Pr(x,y=1\given M=2)=\theta 2(1-x)$ and for $y=2$: $\Pr(x,y=1\given M=2)=\theta x$. They can easily be expanded into polynomials $H_i(x)$ up to order $i=3$. For both, the boundary term at $\tau=0$ must be zero, such that $b=\theta$ and $b=\theta/2$, for $y=1$ and $y=2$, respectively. For $y=0$, we have inside the polymorphic region the expansion $\theta (1-x)^2/x=\sum_{i=0}^\infty x^{i+2}$ and at the boundary $b=1-3\theta/2$. Substituting these initial values into the inhomogeneous differential equations (\ref{eq:inhomogeneous}) results in the expansion for all $\tau>0$.
 
@@ -851,7 +826,7 @@ Our starting condition is not a particular state, which can be modeled by the Di
 solves the diffusion equation with the starting starting distribution $\rho(p)$. In fact, $h(x\given p,\rho,\tau)$ is a Fredholm integral equation. %TODO citation!
 With the applications in this article, however, the deviation through the infinite series in equations (\ref{eq:Greens_function} and \ref{eq:Fredholm}) is more cumbersome than the direct route to the polynomials of degree $M$ in the examples above. 
 
-Note that the approach with Green's functions is analogous to the use of the discrete forward models in \eg\ POMO \citep{DeMa13}, with summation replacing the integral in equation (\ref{eq:Fredholm}).
+Note that the approach with Green's functions is analogous to the use of the discrete forward models in \eg\ PoMo \citep{Schrempf2016}, with summation replacing the integral in equation (\ref{eq:Fredholm}).
 
 \section*{References}
 

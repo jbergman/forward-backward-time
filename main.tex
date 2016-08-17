@@ -141,7 +141,7 @@ Backward processes allow pushing the conditioning on the population allele frequ
 
 \citet{Zhao13} provide a forward algorithm based on the Wright-Fisher model, where probabilities of intermediate states are calculated, conditional on the starting and end states. This allows for simulation of trajectories. Generally, the starting state of the population is unknown, even if an ancestral sample is given since $M \ll N$, such that summation over many starting states (generally all or at least most states) is necessary. This is cumbersome for large $N$, as is the iteration of large transition matrices. Again, the latter problem can be alleviated by diagonalizing the transition matrix. 
 
-In this article, we use backward processes to conveniently calculate probabilities of population allelic proportions backward in time conditional on the SFS or the jSFS from the present. In discrete time, the algorithm is a variant of the forward-backward algorithm and thus uses dynamic programming. The method can also be used to calculate likelihoods of jSFS. Furthermore, we introduce bi-allelic population genetic models with mutations only from the boundaries that are variants of the infinite site or Poisson-random-fields models \citep{Kimu69,Sawy92}. The Markov chains of the models under consideration have no absorbing states and therefore have stationary distributions, however, we do not always assume time-reversibility. For the discrete models, transition matrices have to be multiplied. For large population sizes, this may be more cumbersome than the use of Kolmogorov forward and backward diffusion equations and of orthogonal polynomials. With mutation and drift only, such orthogonal polynomials provide a flexible and fast method to calculate marginal likelihoods for inference in population genetics.
+In this article, we use backward processes to conveniently calculate probabilities of population allelic proportions backward in time conditional on the SFS or the jSFS from the present. In discrete time, the algorithm is a variant of the forward-backward algorithm and thus uses dynamic programming. The method can also be used to calculate likelihoods of jSFS. Furthermore, we introduce bi-allelic population genetic models with mutations only from the boundaries that are variants of the infinite site or Poisson-random-fields models \citep{Kimu69,Sawy92}. The Markov chains of the models under consideration have no absorbing states and therefore have stationary distributions, however, we do not always assume time-reversibility. For the discrete models, transition matrices have to be multiplied. For large population sizes, this is more cumbersome than the use of Kolmogorov forward and backward diffusion equations and of orthogonal polynomials. With mutation and drift only, such orthogonal polynomials provide a flexible and fast method to calculate marginal likelihoods for inference in population genetics.
 
 \section{Time-homogeneous discrete Markov chains}
 
@@ -767,14 +767,14 @@ It follows from the orthogonality relation that only the first term in the expan
 For two populations with sample sizes $M_1$ and $M_2$, the respective likelihoods $\Pr(y_1\given M_1)$ and $\Pr(y_2\given M_2)$ are similarly expanded into the modified Jacobi polynomials with coefficients $c_i^{(1)}$ and $c_i^{(2)}$, where the superscripts indicate the population. At time $\tau$ back in the past, we have
 \begin{equation}
     \Pr(y_1\given x, M_1,\alpha,\theta,\tau)=
-    \sum_{i=0}^{M} e^{-\lambda_i\tau}c_i^{(1)}R_i^{(\alpha,\theta)}(x)
+    \sum_{i=0}^{M_1} e^{-\lambda_i\tau}c_i^{(1)}R_i^{(\alpha,\theta)}(x)
 \end{equation}
 and similarly for the second population, such that the marginal likelihood is
 %TODO: the indices for the populations are not consistent (super- vs subscripts)! But this may require change in the discrete case too!
 \begin{equation}
 \begin{split}
     \Pr(y_1,y_2\given M_1,M_2,\alpha,\theta,\tau)&=
-    \sum_{i=0}^{M}\sum_{j=0}^{M}\int_0^1 e^{-\lambda_i\tau}c_i^{(1)}R_i^{(\alpha,\theta)}(x)\\
+    \sum_{i=0}^{M_1}\sum_{j=0}^{M_2}\int_0^1 e^{-\lambda_i\tau}c_i^{(1)}R_i^{(\alpha,\theta)}(x)\\
     &\qquad\times e^{-\lambda_j\tau}c_j^{(2)} R_j^{(\alpha,\theta)}(x)\pi(x)^{(\alpha,\theta)}  \,dx\\&=
     \sum_{i=0}^{M}\int_0^1 e^{-2\lambda_i\tau}c_i^{(1)}c_i^{(2)} (R_i^{(\alpha,\theta)}(x))^2\pi(x)^{(\alpha,\theta)}  \,dx\\
     &=\sum_{i=0}^{M}\frac{e^{-2\lambda_i\tau}c_i^{(1)} c_i^{(2)}\Delta_i^{(\alpha\theta)}}{\Delta_0^{(\alpha\theta)}}\,,

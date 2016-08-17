@@ -429,7 +429,7 @@ Consider a focal bi-allelic site with the population frequency of allele zero de
 \begin{equation}\label{eq:forw_discr_mutation}
 \begin{split}
 &\Pr(\x{t+1}=i)-\Pr(\x{t}=i) = \\
-&\qquad\alpha\theta \bigg[\frac{(N-i+1)\Pr(\x{t}=i-1) - (N-i)\Pr(\x{t}=i)}{N^2}\bigg]\\
+&\qquad \frac{\alpha\theta}{N^2} \bigg[(N-i+1)\Pr(\x{t}=i-1) - (N-i)\Pr(\x{t}=i)\bigg]\\
 &\qquad+\beta\theta \bigg[\frac{(i+1)\Pr(\x{t}=i+1) - i\Pr(\x{t}=i)}{N^2}\bigg]\\
 &\qquad+\bigg[\frac{(i-1)(N-i+1)\Pr(\x{t}=i-1)}{N^2}+ \frac{(i+1)(N-i-1)\Pr(\x{t}=i+1)}{N^2}\\
 &\qquad-\frac{2i(N-1)\Pr(\x{t}=i)}{N^2}\bigg]\,,

@@ -581,23 +581,25 @@ With the  boundary mutation model, the scaled mutation rate $\theta=(\mu_0+\mu_1
 \subsubsection{Forward in time}
 
 Forward in time, the mutation term in the diffusion equation is thus replaced by either a Heaviside function, before differentiation with respect to space, or a delta function, after differentiation with respect to space. The latter variant leads to:
-\begin{equation}\label{eq:forw_bounddrift}
-\begin{split}
-\frac{\partial}{\partial \tau} \phi(x,\tau)&=
-    \lim_{N\to\infty}\alpha\theta N\delta(x-\tfrac1N) \,b_0(\tau)
-    +\lim_{N\to\infty}\beta\theta N\delta(x-\tfrac{N-1}N) \,b_1(\tau)\\
-    &\qquad+\frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x,\tau)\,,
-\end{split}
-\end{equation}
+\begin{align}\label{eq:forw_bounddrift}
+  \frac{\partial}{\partial \tau} \phi(x,\tau) =
+  \begin{cases}
+    \alpha\theta N\delta(x-\tfrac1N) \,b_0(\tau)  \quad         & \text{if } 0 < x < 1/N         \\
+    \frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x,\tau)\, \quad & \text{if } 1/N \le x \le 1-1/N \\
+    \beta\theta N\delta(x-\tfrac{N-1}N) \,b_1(\tau)\quad        & \text{if } 1-1/N < x < 1       \\
+\end{cases}
+\end{align}
 where $b_0(\tau)$ and $b_1(\tau)$ are the values at the boundaries zero and one at time $\tau$, respectively, if all the interior probability mass drifted to their expected locations of fixation. At the boundaries, dynamics are slow compared to the region inside, since only a short time is spent in the polymorphic region compared to the time waiting for the mutations to leave the boundary region. 
 
 The following function solves the forward equation under assumption of stationarity
-\begin{equation}
-\begin{split}
-    \pi(x, \alpha, \theta)&=\left(b_0(\tau=\infty)-\alpha\beta\theta \lim_{N\to\infty}\int_{\tfrac1N}^{\tfrac{N-1}N} \frac1x\,dx\right)\delta(x)+\alpha\beta\theta\frac{1}{x(1-x)} \\
-    &\qquad+\left(b_1(\tau=\infty)-\lim_{N\to\infty}\alpha\beta\theta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1{1-x}\,dx\right)\delta(x-1)\,,
-\end{split}
-\end{equation}
+\begin{align}\label{eq:forw_bounddrift}
+  \pi(x, \alpha, \theta) =
+  \begin{cases}
+    b_0(\tau=\infty)-\alpha\beta\theta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1x\,dx \quad     & \text{if } 0 < x < 1/N         \\
+    \alpha\beta\theta\frac{1}{x(1-x)} \quad                                                 & \text{if } 1/N \le x \le 1-1/N \\
+    b_1(\tau=\infty)-\alpha\beta\theta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1{1-x}\,dx \quad & \text{if } 1-1/N < x < 1       \\
+\end{cases}
+\end{align}
 with the boundary probabilities $b_0(\tau=\infty)=\beta$ and $b_1(\tau=\infty)=\alpha$ \citep{Vogl15,Vogl16}. This function integrates to unity, but may attain negative values at the boundaries and thus must be considered a generalized measure. 
 
 The forward diffusion equation (\ref{eq:forw_bounddrift}) can be solved by starting from the eigensystem of the general forward equation, \ie\ the product of the modified Jacobi polynomials \citep{Song12} and the equilibrium beta distribution, and letting the scaled mutation rate $\theta$ approach zero \citep[][Appendix A.1]{Vogl15}. Close to the boundaries, terms then converge to point masses, which can be represented by Dirac delta distributions. Note that the resulting functions are not strictly eigenfunctions, since they are coupled at the boundaries, such that we refer to them as \textit{augmented eigenfunctions} in the following. 

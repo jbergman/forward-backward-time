@@ -119,6 +119,8 @@ bi-allelic mutation-drift models \sep Markov chain \sep time reversal \sep forwa
 
 \linenumbers
 
+\listoftodos
+
 \section{Introduction}
 
 Most basic population genetic models, \eg\ the Wright-Fisher and the Moran models as well as the forward and backward diffusion models \citep[reviewed in][]{Ewen04}, were introduced before DNA sequence data became available. Thus, emphasis was on demonstrating processes over time and on qualitatively explaining observations, rather than on quantitative inference of population genetic parameters given molecular data. On the other hand, coalescent theory \citep{King82} was used both for demonstration of processes as well as for inference given a population sample \citep{Hein05,Wake09}. With coalescence, the history of a particular sample is reconstructed, however the aim in population genetics is most often the inference of the evolutionary trajectory of the whole population.
@@ -587,7 +589,7 @@ Forward in time, the mutation term in the diffusion equation is thus replaced by
 where $b_0(\tau)$ and $b_1(\tau)$ are the values at the boundaries zero and one at time $\tau$, respectively, if all the interior probability mass drifted to their expected locations of fixation. At the boundaries, dynamics are slow compared to the region inside, since only a short time is spent in the polymorphic region compared to the time waiting for the mutations to leave the boundary region. 
 
 The following function solves the forward equation under assumption of stationarity
-\begin{align}\label{eq:forw_bounddrift}
+\begin{align}\label{eq:forw_bounddrift-stat}
   \pi(x, \alpha, \theta) =
   \begin{cases}
     b_0(\tau=\infty)-\alpha\beta\theta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1x\,dx \quad     & \text{if } 0 < x < 1/N         \\
@@ -679,8 +681,8 @@ With the starting value $T_1(\tau=0)=a_1^{*}$, the solution of this differential
 \end{equation}
 
 The backward expansion for the boundary mutation model is therefore
-\begin{equation}\label{eq:backw_expansion_boundary}
 \todo[]{CV: I fixed an error in this equation.}
+\begin{equation}\label{eq:backw_expansion_boundary}
 \begin{split}
     &\psi(x,\tau)=T_0^{*}(\tau)H_0^{*}(x)+ T_1^{*}(\tau)H_1^{*}(x)+\sum_{n=2}^\infty a_n^{*} e^{-n(n-1) |\tau|}\,H_n^{*}(x)\,.
 \end{split}

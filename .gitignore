@@ -8,3 +8,4 @@
 *.spl
 auto/
 *.rel
+/main.tdo

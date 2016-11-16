@@ -428,6 +428,7 @@ Consider an ancestral population with stationary allele frequency distribution~\
 
 In this section, we derive the forward and backward diffusion equation from the forward and backward transition probabilities of the decoupled Moran model and show the tight connections between the discrete and continuous models. Derivations are simpler than usual \citep{Ewen04}; terms higher than the first derivative with respect to time and second derivative with respect to space do not occur. 
 
+\subsection{General mutation-drift model}
 Consider a focal bi-allelic site with the population frequency of allele zero denoted by $i$ ($1 \leq i \leq N-1$). With the transition probabilities of the decoupled Moran model (\ref{eq:transition_decoupled_Moran}), the frequency $i$ may increase or decrease by one due to mutation or drift or remain constant. Forward in time, the difference of the probability at frequency $i$ per Moran step may be written as
 \begin{equation}\label{eq:forw_discr_mutation}
 \begin{split}
@@ -435,12 +436,13 @@ Consider a focal bi-allelic site with the population frequency of allele zero de
 &\qquad \frac{\alpha\theta}{N^2} \bigg[(N-i+1)\Pr(\x{t}=i-1) - (N-i)\Pr(\x{t}=i)\bigg]\\
 &\qquad+\frac{\beta\theta}{N^2} \bigg[(i+1)\Pr(\x{t}=i+1) - i\Pr(\x{t}=i)\bigg]\\
 &\qquad+\frac1{N^2}\bigg[(i-1)(N-i+1)\Pr(\x{t}=i-1) \\
-&\qquad+ (i+1)(N-i-1)\Pr(\x{t}=i+1)-2i(N-1)\Pr(\x{t}=i)\bigg]\,,
+&\qquad+ (i+1)(N-i-1)\Pr(\x{t}=i+1)-2i(N-i)\Pr(\x{t}=i)\bigg]\,,
 \end{split}
 \end{equation}
 where the first square brackets corresponds to mutation towards allele one, the second to mutation towards allele zero, and the third to genetic drift.
 
 To approximate the change in frequency as a continuous time and space process, the discrete time $t$ is usually replaced by $\tau = t/N^2$ and the discrete allele frequency $i$ by the proportion $x=i/N$. The average lifespan of an individual or the generation time in the Wright-Fisher model corresponds to $N$ Moran time steps, such that, after rescaling, time is measured in units of $N$ Wright-Fisher generations. We introduce the quantities $\delta \tau=1/N^2$ and $\delta x=1/N$ and rewrite (\ref{eq:forw_discr_mutation})
+\todo[inline]{I think in the next formula, it should be $\Pr(\x{\tau}=xN)$ and not $\Pr(\x{\tau}=x)$ (the $N$ is different!) or we already introduce $\phi(x,t)$ defined as $\Pr(\x{\tau}=xN)\delta x \delta t$ here.}
 \begin{equation}\label{eq:forw_cont_mutation}
 \begin{split}
 &\frac{\Pr(\x{\tau+\delta \tau}=x)-\Pr(\x{\tau}=x)}{\delta \tau} =\\ &\qquad\alpha\theta \bigg[\frac{(1-x+\delta x)\Pr(\x{\tau}=x-\delta x) - (1-x)\Pr(\x{\tau}=x)}{\delta x}\bigg]\\
@@ -474,6 +476,49 @@ After rescaling time and space, considering the limit $N \to \infty$ and definin
 The minus sign on the left side of the backward diffusion equation (\ref{eq:backw_mutdrift}) may be unusual, but necessary such that the time $\tau$ runs in the same direction in the forward and backward diffusion. Note that \citet{Zhao13a} also use a pair of forward and backward diffusion equations with differing signs.
 
 %It is straightforward to modify the assumptions in Section~\ref{section:assumptions} to continuous time.
+
+\subsection{Boundary mutation-drift model}
+
+With small scaled mutation rates $\theta$, drift within the polymorphic region is much stronger than mutation, such that a polymorphic site will quickly, compared to the scaled mutation rate, drift to the boundaries. Thus within the interval $\frac1N<x<\frac{N-1}N$ the dynamics are governed by the pure drift diffusion equation
+\begin{equation}\label{eq:forw_drift}
+  \frac{\partial}{\partial \tau} \phi(x,\tau) =\frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x,\tau)\,.  
+\end{equation}
+The loss of probability mass from the interior towards the boundaries due to drift is 
+\begin{align}\label{eq:forw_lossdrift}
+  \begin{cases}
+    \frac{N-1}N\Pr(\x{\tau}=\delta x)  \quad         & \text{from $x=\frac1N$ to 0}\\
+    \frac{N-1}N\Pr(\x{\tau}=1-\delta x)  \quad         & \text{from $x=\frac{N-1}N$ to 1.}
+\end{cases}
+\end{align}
+\todo[inline]{I actually think it should rather be:}
+\begin{align}\label{eq:forw_lossdrift}
+  \begin{cases}
+    \frac{N-1}N\phi(x=\frac1N,\tau)  \quad         & \text{from $x=\frac1N$ to 0}\\
+    \frac{N-1}N\phi(x=1-\frac1N,\tau)  \quad         & \text{from $x=\frac{N-1}N$ to 1.}
+\end{cases}
+\end{align}
+Note that $b_0(\tau)=\int_0^1(1-x) \phi(x,\tau)\,dx$ will drift to the boundary zero, such that $\Pr(\x{\tau}=0)=b_0(\tau)$, and $b_1(\tau)=\int_0^1 x \phi(x,\tau)\,dx$ to boundary one, such that $\Pr(\x{\tau}=1)=b_1(\tau)$. Thus, $\x{\tau}=\delta x$ receives mutants from the boundary zero and  $\x{\tau}=1-\delta$ receives the boundary one:
+\todo[]{Here the same as in the previous formula, but it does not make a difference.}
+\begin{equation}\label{eq:forw_gainmut}
+\begin{cases}
+\alpha\theta \bigg[\frac{\Pr(\x{\tau}=0) - \Pr(\x{\tau}=\delta x)}{\delta x}\bigg]&=\alpha\theta \bigg[\frac{b_0(\tau) - 0}{\delta x}\bigg]=\alpha\theta N b_0(\tau)\,,\\
+\alpha\theta \bigg[\frac{\Pr(\x{\tau}=1) - \Pr(\x{\tau}=1-\delta x)}{\delta x}\bigg]&=\beta\theta \bigg[\frac{b_1(\tau) - 0}{\delta x}\bigg]=\beta\theta N b_1(\tau)\,,\\
+\end{cases}
+\end{equation}
+At the boundaries, dynamics are slow compared to the region inside, since only a short time is spent in the polymorphic region compared to the time waiting for the mutations to leave the boundary region. In particular, 
+\begin{equation}\label{eq:forw_boundaries}
+    \begin{cases}
+    \frac{d}{dt}b_1(\tau)=-b_1(\tau)+\alpha(b_0(\tau=0)+b_1(\tau=0))\,,\\
+    b_1(\tau)=(b_0(\tau=0)+b_1(\tau=0))-b_1(\tau)\,.\\
+    \end{cases}
+\end{equation}
+Equations (\ref{eq:forw_drift}-\ref{eq:forw_boundaries}) specify the forward dynamics of the boundary mutation-drift model.
+
+Backward in time, the pure drift diffusion equation
+\begin{equation}\label{eq:forw_drift}
+  \frac{\partial}{\partial \tau} \phi(x,\tau) =\frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x,\tau) 
+\end{equation}
+is also defined in the interval $\frac1N<x<\frac{N-1}N$. The probability of having arisen from the boundaries by drift is a time $\delta t$ ago is zero, such that the terms corresponding to equation (\ref{eq:forw_lossdrift}) backward in time are zero. Mutations that entered from zero, could have come from within the unit interval with probability $\alpha\theta(1-x)$; mutations that entered from one with probability $\beta\theta x$. The slow dynamics backward in time are analogous to those forward in time. We will expand on the backward model, when we introduce the backward eigenfunctions below.
 
 \section{Forward and backward diffusion equations}\label{forwBackDiff}
 
@@ -651,7 +696,7 @@ According to the boundary mutation model \citep{Vogl15}, what mutated to $x=1/N$
     \theta \frac{(-1)^n \alpha (1-x) +\beta x}{n}=\vartheta\frac{(-1)^n+1}{n}H_0^{*}(x)-\theta\frac{(-1)^n\alpha-\beta}{n}H_1^{*}(x)\,.
 \end{equation}
 
-The linear differential equations for the slow functions therefore become inhomogenous.
+The linear differential equations for the slow functions therefore become inhomogeneous.
 For $T_0^{*}(\tau)$, we have
 \todo[inline]{Watch out for signs! The signs are now consistent with those in the R-program.}
 \begin{equation}
@@ -667,7 +712,7 @@ With a starting value of $T_0^{*}(\tau=0)=a_0^{*}$, we obtain
         &=a_0^{*}+\vartheta\sum_{n=2}^\infty a_n^{*}\,A_n\Delta_n\, (1- e^{-n(n-1) |\tau|})\,.
 \end{split}
 \end{equation}
-For $T_1^{*}(\tau)$, the linear inhomogenous differential equation is 
+For $T_1^{*}(\tau)$, the linear inhomogeneous differential equation is 
 \begin{equation}
 \begin{split}
     \frac{d}{dt} T_1^{*}(\tau)&=-\theta T_1^{*} (\tau)

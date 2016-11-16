@@ -443,7 +443,7 @@ where the first square brackets corresponds to mutation towards allele one, the 
 
 To approximate the change in frequency as a continuous time and space process, the discrete time $t$ is usually replaced by $\tau = t/N^2$ and the discrete allele frequency $i$ by the proportion $x=i/N$. The average lifespan of an individual or the generation time in the Wright-Fisher model corresponds to $N$ Moran time steps, such that, after rescaling, time is measured in units of $N$ Wright-Fisher generations. We introduce the quantities $\delta \tau=1/N^2$ and $\delta x=1/N$ and rewrite (\ref{eq:forw_discr_mutation})
 \todo[inline]{I think in the next formula, it should be $\Pr(\x{\tau}=xN)$ and not $\Pr(\x{\tau}=x)$ (the $N$ is different!) or we already introduce $\phi(x,t)$ defined as $\Pr(\x{\tau}=xN)\delta x \delta t$ here.}
-\begin{equation}\label{eq:forw_cont_mutation}
+\begin{equation}\label{eq:forw_partly_cont_mutation}
 \begin{split}
 &\frac{\Pr(\x{\tau+\delta \tau}=x)-\Pr(\x{\tau}=x)}{\delta \tau} =\\ &\qquad\alpha\theta \bigg[\frac{(1-x+\delta x)\Pr(\x{\tau}=x-\delta x) - (1-x)\Pr(\x{\tau}=x)}{\delta x}\bigg]\\
 &\qquad+\beta\theta \bigg[\frac{(x+\delta x)\Pr(\x{\tau}=x+\delta x) - x\Pr(\x{\tau}=x)}{\delta x}\bigg]\\
@@ -451,6 +451,24 @@ To approximate the change in frequency as a continuous time and space process, t
 &\qquad+ \frac{(x+\delta x)(1-x-\delta x)\Pr(\x{\tau}=x+\delta x)}{\delta x^2}-\frac{2x(1-x)\Pr(\x{\tau}=x)}{\delta x^2}\bigg].\\
 \end{split}
 \end{equation}
+
+\todo[inline]{Dom: I would directly do a transition from discrete to continuous without using intermediate steps that are hard to interpret (like $\Pr(\x{\tau}=xN)$; because here $xN=i$ stays constant but time $t$ is scaled).  What about the following (wording needs to be improved).}
+
+Let $\phi(x,\tau)$ be the probability density at frequency $x$ and
+time $\tau$ such that $\phi(x,\tau)\delta \tau \delta x =
+\Pr(\x{t}=i$).  Then, we can rewrite
+Eq.~\eqref{eq:forw_discr_mutation} as
+\begin{equation}\label{eq:forw_cont_mutation}
+\begin{split}
+  &\phi(x,\tau+\delta \tau)-\phi(x,\tau) =\\
+  &\qquad\frac{\alpha\theta}{N} \bigg[(1-x+\delta x)\phi(x-\delta x, \tau) - (1-x)\phi(x,\tau)\bigg] \\
+  &\qquad+\frac{\beta\theta}{N} \bigg[(x+\delta x)\phi(x+\delta x,\tau) - x\phi(x,\tau)\bigg] \\
+  &\qquad+(x-\delta x)(1-x+\delta x)\phi(x-\delta x,\tau) \\
+  &\qquad+(x+\delta x)(1-x-\delta x)\phi(x+\delta x,\tau) - 2x(1-x)\phi(x,\tau).\\
+\end{split}
+\end{equation}
+
+\todo[inline]{Dom: We could also directly introduce the differential quotients like in Eq.(27) at the moment.}
 
 In the limit $N \to \infty$, the term to the left of the equality sign of (\ref{eq:forw_cont_mutation}) corresponds to the definition of the first derivative with respect to time $\tau$ of $\Pr(\x{\tau}=x)$; the first two terms in square brackets after the equality sign correspond to the first derivatives with respect to $x$ of $-(1-x)\Pr(\x{\tau}=x)$ and $x\Pr(\x{\tau}=x)$, respectively; the term in the last square bracket corresponds to the definition of the second symmetric derivative with respect to $x$ of $x(1-x)\Pr(\x{\tau}=x)$.  After minor rearrangements and setting $\phi(x,\tau)$ to the probability density at frequency $x$ and time $\tau$, the familiar form of the forward mutation-drift diffusion equation is obtained:
 \begin{equation}\label{eq:forw_mutdrift}
@@ -1021,3 +1039,8 @@ With these redefinitions the forward expansion becomes
 \end{split}
 \end{equation}
 Truncated at some $n=n_{max}$ the latter version of the forward expansion is much smoother than the former. Furthermore,  $H_0^{'}(x)$ and $H_1^{'}(x)$ may be replaced by beta functions, as well as the boundary terms of the $H_n(x)$, such that the discontinuities at the boundaries are not necessary. The latter version thus seems preferable, if only the forward diffusion is needed, but only the former is orthogonal with the backward functions we develop below.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

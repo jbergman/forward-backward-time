@@ -147,7 +147,7 @@ In the limit $N\to\infty$, the solution to the corresponding Kolmogorov forward 
 
 \section{Time-homogeneous discrete Markov chains}
 
-In this section we apply the forward-backward algorithm to discrete population genetic models for inference given an SFS or jSFS. To this purpose, we rephrase iteration using discrete population genetic models (Wright-Fisher or Moran) in the terminology of the forward-backward algorithm. We mainly use matrix notation to emphasize the similarities between discrete iteration and continuous models in Sections~\ref{diffDer} and~\ref{forwBackDiff}. Many subsections review standard theory, but are included for completeness and clarity. 
+In this section we apply the forward-backward algorithm to discrete population genetic models for inference given an SFS or jSFS. To this purpose, we rephrase iteration using discrete population genetic models (Wright-Fisher or Moran) in the terminology of the forward-backward algorithm. We mainly use matrix notation to emphasize the similarities between discrete iteration and continuous models in Sections~\ref{section:diffDer} and~\ref{forwBackDiff}. Many subsections review standard theory, but are included for completeness and clarity. 
 
 \subsection{Assumptions}\label{section:assumptions}
 \begin{enumerate}[(i)]
@@ -425,7 +425,7 @@ Consider an ancestral population with stationary allele frequency distribution~\
 \section{Forward and backward diffusion equations}\label{forwBackDiff}
 
 In this section, we provide theory of the continuous analogs of the discrete forward and backward transition probabilities both for reversible and irreversible Markov processes. Furthermore, we illustrate with examples.
-The forward and backward diffusion equations are derived from the discrete Moran model using only the definition of the first and second symmetric derivative in Appendix~(\ref{sectioin:diffDer}).
+The forward and backward diffusion equations are derived from the discrete Moran model using only the definition of the first and second symmetric derivative in Appendix~(\ref{section:diffDer}).
 
 With the forward and backward diffusion operators 
 \begin{equation}
@@ -771,7 +771,7 @@ with
     B_n&=-(n-1)\frac{(-1)^n\alpha-\beta}{\Delta_n}T_1(\tau)\,.
 \end{split}
 \end{equation}
-In Appendix~(\ref{section:backward_derivation}), we derive a system of inhomogenous differential equations for the backward system similar to eq.~(\label{eq:forward_inhomogenous}) from population genetic considerations for the corresponding backward eigenfunctions. 
+In Appendix~(\ref{section:backward_derivation}), we derive a system of inhomogenous differential equations for the backward system similar to~\eqref{eq:forward_inhomogenous} from population genetic considerations for the corresponding backward eigenfunctions. 
 
 We note that the forward system can be diagonalized by setting 
 \todo{Watch out for signs!}
@@ -868,7 +868,8 @@ We apply the models to infer the conditional distribution of population allelic 
 
 Song and colleagues \citep{Song12,Stei13,Stei14,Zivk15} analyse self-adjoint continuous models generally with a Dirac delta function as a starting condition, instead of a prior distribution at $\tau=s$ and a likelihood at $\tau=0$ (see Appendix~A.1). Their assumptions require infinite series of polynomials to represent the starting Dirac delta function, instead of only up to the order of the sample size $M$, as with our assumptions. But since these authors also consider selection, which leads to eigenfunctions with infinite expansions on its own, this inconvenience is irrelevant. 
 
-We note that an analysis involving iteration of moments \citep{Evan07,Zivk11} also provides a solution with similar initial conditions forward and backward in time. The model analyzed by these authors is the continuous version of the  boundary-mutation model presented here, where ancestral and derived alleles are differentiated (subsection~\ref{section:irreversible_diffusion}). \citet{Zivk11} also discuss relations of that model to coalescence theory. 
+We note that an analysis involving iteration of moments \citep{Evan07,Zivk11} also provides a solution with similar initial conditions forward and backward in time. The model analyzed by these authors is the continuous version of the  boundary-mutation model presented here, where ancestral and derived alleles are differentiated. %(subsection~\ref{section:irreversible_diffusion})
+\citet{Zivk11} also discuss relations of that model to coalescence theory.
 
 Interestingly, \citet{Zhao13} also present an approach involving diffusion to calculate conditional trajectories that involves the product of solutions of the forward and backward equation. As with Song and colleagues, they consider a Dirac delta function as starting state and, additionally, also as a final state. Usually in population genetics, however, only a sample from the present is given, while the starting conditions are even less well defined. This approach requires integration over possible start and end states, which adds another layer of complexity avoided with our approach. 
 
@@ -883,7 +884,8 @@ The authors thank Reinhard B\"urger, Joachim Hermisson and other colleagues from
 
 \section{Appendices}
 
-\subsection{Derivation of the forward and backward diffusion equations from the decoupled recurrent mutation-drift Moran model}\label{sectioin:diffDer}
+\subsection{Derivation of the forward and backward diffusion equations from the decoupled recurrent mutation-drift Moran model}
+\label{section:diffDer}
 
 In this appendix, we derive the forward and backward diffusion equation from the forward and backward transition probabilities of the decoupled Moran model and show the tight connections between the discrete and continuous models. Derivations are simpler than usual \citep{Ewen04}; terms higher than the first derivative with respect to time and second derivative with respect to space do not occur. 
 
@@ -1028,7 +1030,7 @@ Within the interval $\delta x\leq x \leq 1-\delta x$, dynamics are governed by t
 Equations (\ref{eq:forw_gainmut})-(\ref{eq:forw_drift}) completely specify the forward dynamics of the boundary mutation-drift model.
 
 Backward in time, the pure drift diffusion equation
-\begin{equation}\label{eq:forw_drift}
+\begin{equation}\label{eq:backw_drift}
   \frac{\partial}{\partial \tau} \psi(x,\tau) =\frac{\partial^2}{\partial x^2}x(1-x)\,\psi(x,\tau) 
 \end{equation}
 is also defined in the interval $\frac1N<x<\frac{N-1}N$. The probability of having arisen from the boundaries by drift is a time $\delta t$ ago is zero, such that the terms corresponding to equation (\ref{eq:forw_lossdrift}) backward in time are zero. Mutations that entered from zero, could have come from within the unit interval with probability $\alpha\theta(1-x)$; mutations that entered from one with probability $\beta\theta x$. The slow dynamics backward in time are analogous to those forward in time. We will expand on the backward model, when we introduce the backward eigenfunctions below.
@@ -1226,118 +1228,114 @@ solves the diffusion equation. With the applications in this article, the infini
   \end{tabular}\label{jointSFScont}
 \end{table}
 
-\end{document}
+% \subsection{Appendix: Derivation of the continuous boundary mutation model from the discrete boundary mutation model}
+
+% The forward discrete boundary mutation model may be written as
+% \begin{equation}\label{eq:forw_discr_bound_mutation}
+% \begin{split}
+% &\Pr(\x{t+1}=i)-\Pr(\x{t}=i) = \\
+% &\qquad \frac{\alpha\theta N}{N^2} \bigg[\Pr(\x{t}=i-1)\delta_{i-1,0} - \Pr(\x{t}=i)\delta_{i,0}\bigg]\\
+% &\qquad+\frac{\beta\theta N}{N^2} \bigg[\Pr(\x{t}=i+1)\delta_{i+1,N} - \Pr(\x{t}=i)\delta_{i+1,N}\bigg]\\
+% &\qquad+\frac1{N^2}\bigg[(i-1)(N-i+1)\Pr(\x{t}=i-1) \\
+% &\qquad+ (i+1)(N-i-1)\Pr(\x{t}=i+1)-2i(N-i)\Pr(\x{t}=i)\bigg]\,,
+% \end{split}
+% \end{equation}
+% where $\delta_{i,j}$ is one if $i=j$ and zero otherwise. 
+
+% As with the derivation from the general model, we use the measure~(\ref{eq:measure}). For $\x{0}$, we have again (now without invoking fast drift towards the boundaries)
+% \begin{equation}
+% \begin{split}
+% \frac{\Pr(\x{\tau}=0)-\Pr(\x{\tau}=0)}{\delta \tau} =
+% &-\alpha\theta \frac{\Pr(\x{\tau}=0)}{\delta x}
+% +\frac{\delta x (1-\delta x)\phi(x+\delta x,\tau)\delta x}{\delta x^2}\,.\\
+% \end{split}
+% \end{equation}
+% From this the loss through drift, \ie\ eq.~\label{eq:forw_lossdrift} can be obtained. Considerations with respect to mutation are more complicated. Generally the mutation rate needs to be compensated b
 
 
-\subsection{Appendix: Derivation of the continuous boundary mutation model from the discrete boundary mutation model}
+% The first term represents loss from the boundary through mutation, the second gain through drift. Conversely, the rates of loss through drift towards the boundaries therefore are
+% \begin{align}\label{eq:forw_lossdrift}
+%   \begin{cases}
+%     (1-\delta x)\phi(x=\delta x,\tau) &\text{at $x=\delta x$ and}\\
+%     (1-\delta x)\phi(x=1-\delta x,\tau) &\text{at $x=1-\delta x$.}\\
+% \end{cases}
+% \end{align}
+% $\Pr(\x{\tau}=0)$ quickly converges to $b_0(\tau)$ and $\Pr(\x{\tau}=1)$ to $b_1(\tau)$% and the change of the boundary terms is so slow that the left side of eq.~(\ref{eq:bound:dynamics_0}) can be set to zero
+% . Therefore $b_0(\tau)$ is always available for mutation at the boundary $x=0$ and $b_1(\tau)$ at the boundary $x=1$ and the interior receives through mutation from the boundaries:
+% \begin{equation}\label{eq:forw_gainmut}
+% \begin{cases}
+% \alpha\theta \frac{b_0(\tau)}{\delta x} &\text{at $x=\delta x$, and}\\
+% \beta\theta\frac{b_1(\tau)}{\delta x} &\text{at $x=1-\delta x$.}\\
+% \end{cases}
+% \end{equation}
+% At the boundaries, dynamics are slow compared to the region inside, in particular, 
+% \begin{equation}\label{eq:forw_boundaries}
+%     \frac{d}{d\tau}b_1(\tau)=-b_1(\tau)+\alpha\,.
+% \end{equation}
+% Within the interval $\delta x\leq x \leq 1-\delta x$, dynamics are governed by the pure drift diffusion equation
+% \begin{equation}\label{eq:forw_drift}
+%   \frac{\partial}{\partial \tau} \phi(x,\tau) =\frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x,\tau)\,.  
+% \end{equation}
+% Equations (\ref{eq:forw_lossdrift})-(\ref{eq:forw_drift}) completely specify the forward dynamics of the boundary mutation-drift model.
 
-The forward discrete boundary mutation model may be written as
-\begin{equation}\label{eq:forw_discr_bound_mutation}
-\begin{split}
-&\Pr(\x{t+1}=i)-\Pr(\x{t}=i) = \\
-&\qquad \frac{\alpha\theta N}{N^2} \bigg[\Pr(\x{t}=i-1)\delta_{i-1,0} - \Pr(\x{t}=i)\delta_{i,0}\bigg]\\
-&\qquad+\frac{\beta\theta N}{N^2} \bigg[\Pr(\x{t}=i+1)\delta_{i+1,N} - \Pr(\x{t}=i)\delta_{i+1,N}\bigg]\\
-&\qquad+\frac1{N^2}\bigg[(i-1)(N-i+1)\Pr(\x{t}=i-1) \\
-&\qquad+ (i+1)(N-i-1)\Pr(\x{t}=i+1)-2i(N-i)\Pr(\x{t}=i)\bigg]\,,
-\end{split}
-\end{equation}
-where $\delta_{i,j}$ is one if $i=j$ and zero otherwise. 
+% \subsection{Appendix: maybe useless}
 
-As with the derivation from the general model, we use the measure~(\ref{eq:measure}). For $\x{0}$, we have again (now without invoking fast drift towards the boundaries)
-\begin{equation}
-\begin{split}
-\frac{\Pr(\x{\tau}=0)-\Pr(\x{\tau}=0)}{\delta \tau} =
-&-\alpha\theta \frac{\Pr(\x{\tau}=0)}{\delta x}
-+\frac{\delta x (1-\delta x)\phi(x+\delta x,\tau)\delta x}{\delta x^2}\,.\\
-\end{split}
-\end{equation}
-From this the loss through drift, \ie\ eq.~\label{eq:forw_lossdrift} can be obtained. Considerations with respect to mutation are more complicated. Generally the mutation rate needs to be compensated b
-
-
-The first term represents loss from the boundary through mutation, the second gain through drift. Conversely, the rates of loss through drift towards the boundaries therefore are
-\begin{align}\label{eq:forw_lossdrift}
-  \begin{cases}
-    (1-\delta x)\phi(x=\delta x,\tau) &\text{at $x=\delta x$ and}\\
-    (1-\delta x)\phi(x=1-\delta x,\tau) &\text{at $x=1-\delta x$.}\\
-\end{cases}
-\end{align}
-$\Pr(\x{\tau}=0)$ quickly converges to $b_0(\tau)$ and $\Pr(\x{\tau}=1)$ to $b_1(\tau)$% and the change of the boundary terms is so slow that the left side of eq.~(\ref{eq:bound:dynamics_0}) can be set to zero
-. Therefore $b_0(\tau)$ is always available for mutation at the boundary $x=0$ and $b_1(\tau)$ at the boundary $x=1$ and the interior receives through mutation from the boundaries:
-\begin{equation}\label{eq:forw_gainmut}
-\begin{cases}
-\alpha\theta \frac{b_0(\tau)}{\delta x} &\text{at $x=\delta x$, and}\\
-\beta\theta\frac{b_1(\tau)}{\delta x} &\text{at $x=1-\delta x$.}\\
-\end{cases}
-\end{equation}
-At the boundaries, dynamics are slow compared to the region inside, in particular, 
-\begin{equation}\label{eq:forw_boundaries}
-    \frac{d}{d\tau}b_1(\tau)=-b_1(\tau)+\alpha\,.
-\end{equation}
-Within the interval $\delta x\leq x \leq 1-\delta x$, dynamics are governed by the pure drift diffusion equation
-\begin{equation}\label{eq:forw_drift}
-  \frac{\partial}{\partial \tau} \phi(x,\tau) =\frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x,\tau)\,.  
-\end{equation}
-Equations (\ref{eq:forw_lossdrift})-(\ref{eq:forw_drift}) completely specify the forward dynamics of the boundary mutation-drift model.
-
-
-\end{document}
-
-\subsection{Appendix: maybe useless}
-
-Note that the forward expansion (\ref{eq:forw_expansion_boundary}) can be rearranged as follows. The expansion of the stationary distribution \label{eq:forw_bounddrift} is
-\todo[inline]{Check signs!}
-\begin{equation}
-    H_0^{'}(x)=\pi(x, \alpha, \theta)= H_0(x)+\sum_{i=2}^\infty A_n H_n(x)
-\end{equation}
-and similarly
-\begin{equation}
-    H_1^{'}(x)=H_1(x)+ \sum_{i=2}^\infty B_n H_n(x)\,.
-\end{equation}
-Furthermore, we set 
-\begin{equation}
-\begin{split}
-    a_0^{'}&=a_0-\sum_{i=2}^\infty a_n\frac{(-1)^n+1}{i}\,,\\
-    a_1^{'}&=a_1-\sum_{i=2}^\infty a_n\frac{(-1)^n\alpha -\beta}{i}\,.
-\end{split}
-\end{equation}
-Then the time-dependent functions for $n\geq 2$ become
-\begin{equation}
-\begin{split}
-    T_0^{'}(\tau)&=a_0^{'}1+\sum_{i=2}^\infty e^{-n(n-1)\tau}\,,\\
-    T_1^{'}(\tau)&=a_1^{'}e^{\theta \tau} +\sum_{i=2}^\infty a_1 B_n (e^{-\theta t}-e^{-n(n-1) \tau})\,,\\
-    T_n^{'}(\tau)&=(a_n-a_0 A_n)e^{-n(n-1)\tau}\,.
-\end{split}
-\end{equation}
-With these redefinitions the forward expansion becomes
-\begin{equation}\label{eq:forw_expansion_boundary}
-\begin{split}
-    &\phi(x,t)= T_0(\tau)\,H_0^{'}(x)+T_1(\tau)\,H_1^{'}(x)+\sum_{n=2}^\infty e^{-n(n-1)\tau}\,H_n(x)\,.
-\end{split}
-\end{equation}
-Truncated at some $n=n_{max}$ the latter version of the forward expansion is much smoother than the former. Furthermore,  $H_0^{'}(x)$ and $H_1^{'}(x)$ may be replaced by beta functions, as well as the boundary terms of the $H_n(x)$, such that the discontinuities at the boundaries are not necessary. The latter version thus seems preferable, if only the forward diffusion is needed, but only the former is orthogonal with the backward functions we develop below.
+% Note that the forward expansion (\ref{eq:forw_expansion_boundary}) can be rearranged as follows. The expansion of the stationary distribution \label{eq:forw_bounddrift} is
+% \todo[inline]{Check signs!}
+% \begin{equation}
+%     H_0^{'}(x)=\pi(x, \alpha, \theta)= H_0(x)+\sum_{i=2}^\infty A_n H_n(x)
+% \end{equation}
+% and similarly
+% \begin{equation}
+%     H_1^{'}(x)=H_1(x)+ \sum_{i=2}^\infty B_n H_n(x)\,.
+% \end{equation}
+% Furthermore, we set 
+% \begin{equation}
+% \begin{split}
+%     a_0^{'}&=a_0-\sum_{i=2}^\infty a_n\frac{(-1)^n+1}{i}\,,\\
+%     a_1^{'}&=a_1-\sum_{i=2}^\infty a_n\frac{(-1)^n\alpha -\beta}{i}\,.
+% \end{split}
+% \end{equation}
+% Then the time-dependent functions for $n\geq 2$ become
+% \begin{equation}
+% \begin{split}
+%     T_0^{'}(\tau)&=a_0^{'}1+\sum_{i=2}^\infty e^{-n(n-1)\tau}\,,\\
+%     T_1^{'}(\tau)&=a_1^{'}e^{\theta \tau} +\sum_{i=2}^\infty a_1 B_n (e^{-\theta t}-e^{-n(n-1) \tau})\,,\\
+%     T_n^{'}(\tau)&=(a_n-a_0 A_n)e^{-n(n-1)\tau}\,.
+% \end{split}
+% \end{equation}
+% With these redefinitions the forward expansion becomes
+% \begin{equation}\label{eq:forw_expansion_boundary}
+% \begin{split}
+%     &\phi(x,t)= T_0(\tau)\,H_0^{'}(x)+T_1(\tau)\,H_1^{'}(x)+\sum_{n=2}^\infty e^{-n(n-1)\tau}\,H_n(x)\,.
+% \end{split}
+% \end{equation}
+% Truncated at some $n=n_{max}$ the latter version of the forward expansion is much smoother than the former. Furthermore,  $H_0^{'}(x)$ and $H_1^{'}(x)$ may be replaced by beta functions, as well as the boundary terms of the $H_n(x)$, such that the discontinuities at the boundaries are not necessary. The latter version thus seems preferable, if only the forward diffusion is needed, but only the former is orthogonal with the backward functions we develop below.
 
 
-\subsection{Example: irreversible boundary mutation model %with binomial likelihood
-}\label{section:irreversible_diffusion}
+% \subsection{Example: irreversible boundary mutation model}
+% \label{section:irreversible_diffusion}
 
-Similar considerations to above also apply to the model in section~(\ref{section:irreversible}) with irreversible mutation, \ie\ where the ancestral and derived states are contrasted. Note that \citet{Evan07} arrive at the same irreversible diffusion model from a Wright-Fisher model and provide recursive equations of moments instead of orthogonal polynomials to calculate the expected SFS under non-equilibrium conditions. \citet{Zivk11} extend their analysis to provide the solution backward in time.  If $N\to\infty$, $\theta/(1-\theta\sum_{i=1}^{N-1}1/i)$ goes to infinity, such that the model collapses. Hence, we assume that mutations constantly supply probability mass from the boundaries to $x=1/N$ at rate $N\theta$ (after scaling time). The forward diffusion equation then becomes
-\begin{equation}\label{eq:forw_onebounddrift}
-\begin{split}
-\frac{\partial}{\partial \tau} \phi(x,\tau)&=
-    \lim_{N\to\infty} N\theta \delta(x-\tfrac1N)b+\frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x,\tau)\,.
-\end{split}
-\end{equation}
-The term $b$ corresponds to the probability $\int_0^1\phi(x,\tau=0)\,dx$, which is unity if the initial distribution integrates to one. The equilibrium distribution is 
-\begin{equation}
-\begin{split}
-    \pi(x\given\theta)&=\left(1-\lim_{N\to\infty}\theta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1x\,dx\right)\delta(x)+\theta\frac{1}{x(1-x)}\,.
-\end{split}
-\end{equation}
-The augmented eigenfunctions are for $n\geq 2$
-\begin{equation}\label{eq:forw_onebound_eigen}
-    H_n(x)=\tfrac{(-1)^n+1}{n}\delta(x)+U_n(x)\,,
-\end{equation}
-while the zeroth and first eigenfunctions collapse to $\delta(x)$. %Substituting $\sum_nT_n(\tau) H_n(x)$ into the forward differential equation (\ref{eq:forw_onebounddrift}) results in the inhomogeneous linear differential equation describing the time-dependent part of the solution
+% Similar considerations to above also apply to the model in section~(\ref{section:irreversible}) with irreversible mutation, \ie\ where the ancestral and derived states are contrasted. Note that \citet{Evan07} arrive at the same irreversible diffusion model from a Wright-Fisher model and provide recursive equations of moments instead of orthogonal polynomials to calculate the expected SFS under non-equilibrium conditions. \citet{Zivk11} extend their analysis to provide the solution backward in time.  If $N\to\infty$, $\theta/(1-\theta\sum_{i=1}^{N-1}1/i)$ goes to infinity, such that the model collapses. Hence, we assume that mutations constantly supply probability mass from the boundaries to $x=1/N$ at rate $N\theta$ (after scaling time). The forward diffusion equation then becomes
+% \begin{equation}\label{eq:forw_onebounddrift}
+% \begin{split}
+% \frac{\partial}{\partial \tau} \phi(x,\tau)&=
+%     \lim_{N\to\infty} N\theta \delta(x-\tfrac1N)b+\frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x,\tau)\,.
+% \end{split}
+% \end{equation}
+% The term $b$ corresponds to the probability $\int_0^1\phi(x,\tau=0)\,dx$, which is unity if the initial distribution integrates to one. The equilibrium distribution is 
+% \begin{equation}
+% \begin{split}
+%     \pi(x\given\theta)&=\left(1-\lim_{N\to\infty}\theta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1x\,dx\right)\delta(x)+\theta\frac{1}{x(1-x)}\,.
+% \end{split}
+% \end{equation}
+% The augmented eigenfunctions are for $n\geq 2$
+% \begin{equation}\label{eq:forw_onebound_eigen}
+%     H_n(x)=\tfrac{(-1)^n+1}{n}\delta(x)+U_n(x)\,,
+% \end{equation}
+% while the zeroth and first eigenfunctions collapse to $\delta(x)$.
+
+% Substituting $\sum_nT_n(\tau) H_n(x)$ into the forward differential equation (\ref{eq:forw_onebounddrift}) results in the inhomogeneous linear differential equation describing the time-dependent part of the solution
 %\begin{equation}\label{eq:inhomogeneous}
 %    \frac{d}{d\tau}T_n(\tau)=-\lambda T_n(\tau)-\theta (2n-1)n(-1)^n\,.
 %\end{equation}
@@ -1348,6 +1346,8 @@ while the zeroth and first eigenfunctions collapse to $\delta(x)$. %Substituting
 %Consider again a sample of size $M=2$, where $y \in (0,1,2)$. With $y=1$, initially $T_2(\tau=0)=2$, while all $T_n(\tau=0)$ with $n>2$ are zero. Since the boundary term is initially zero, $b=\theta$ in the backward diffusion equation (\ref{eq:backw_onebounddrift}). Another way to derive the boundary term is to note that it is equal to $\Pr(y=1\given \theta)=\theta$. Substituting these initial values into the inhomogeneous differential equations (\ref{eq:inhomogeneous}) results in the expansion for all $\tau$. The backward expansion converges to a constant distribution $\theta$ within the interval including zero but excluding one with $\tau\to\infty$.
 
 %With $y=0$, we initially expand $x/(1-x)$ into a polynomial $\sum_{n=0}^\infty x^{n+1}$ and determine the $T_n(x)$, while the boundary term is equal to $\Pr(y=0\given \theta)=\theta/2$. With $y=2$, the expansion is similar to that with $y=0$, but reflected around $x=1/2$, while the boundary term is equal to $\Pr(y=2\given \theta)=1-3\theta/2$.
+
+\end{document}
 
 %%% Local Variables:
 %%% mode: latex

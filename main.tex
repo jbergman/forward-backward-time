@@ -76,9 +76,9 @@
 \newcommand\dgr{{$^o$}}
 
 % Dom: I decided to use X_t for time dependence instead of x(t) because it is better readable.  However, it could be redefined here, if you do not agree!
-\newcommand\x[1]{\ensuremath{X_{#1}}}
+\newcommand\x[1]{\ensuremath{x_{#1}}}
 % Same for y.
-\newcommand\y{\ensuremath{Y}}
+\newcommand\y{\ensuremath{y}}
 % Use capital or lower case letter for the time at -s?
 \newcommand\s{\ensuremath{s}}
 % Definitions of f, b and the one vectors.
@@ -98,8 +98,9 @@
 \ead{juraj.bergman@vetmeduni.ac.at}
 \author[address1,address2]{Dominik Schrempf}
 \ead{dominik.schrempf@vetmeduni.ac.at}
-\author[address1]{Carolin Kosiol}
-\ead{carolin.kosiol@vetmeduni.ac.at}
+\author[address1,address4]{Carolin Kosiol}
+%\ead{carolin.kosiol@vetmeduni.ac.at}
+\ead{ck202@st-andrews.ac.uk}
 \author[address3]{Claus Vogl\corref{correspondingauthor}}
 \cortext[correspondingauthor]{Corresponding author}
 \ead{claus.vogl@vetmeduni.ac.at}
@@ -107,12 +108,13 @@
 \address[address1]{Institut f\"ur Populationsgenetik, Vetmeduni Vienna, Veterin\"arplatz 1, A-1210 Wien, Austria}
 \address[address2]{Vienna Graduate School of Population Genetics, A-1210 Wien, Austria}
 \address[address3]{Institut f\"ur Tierzucht und Genetik, Vetmeduni Vienna, Veterin\"arplatz 1, A-1210 Wien, Austria}
+\address[address4]{Centre of Biological Diversity, School of Biology, University of St.~Andrews, St Andrews KY16 9TH, UK}
 
 \begin{abstract}
-The Wright-Fisher and Moran models are Markov processes, where discrete population allele frequencies are iterated forward in time by multiplication with a transition matrix, modeling population genetic forces (\eg\ mutation, selection, and drift). For large population sizes, iteration can be replaced by continuous diffusion. Data are typically aligned sequences of a sample of individuals from the present that can be represented as a site frequency spectrum (SFS) of a single population or joint site frequency spectra (jSFS) of many populations. The task is to infer population genetic parameters or the population history from such data. With forward processes, \ie\ the Wright-Fisher, the Moran, or the forward diffusion models, population allele frequency distributions in and out of equilibrium may be obtained. These can be combined with the likelihoods of a SFS to obtain joint distributions of sample and population allele frequencies. By integrating out population allele frequencies, population genetic parameters may be obtained from the marginal likelihoods. Backward processes consist of, in the discrete case, iteration of the transpose of the transition matrix or, in the continuous case, of the backward diffusion equation. We make use of the the forward and backward processes, as in the forward-backward algorithm of hidden Markov models, to efficiently calculate the probability distribution of population allele frequencies at all times in the past. Additionally, marginal likelihoods of samples from multiple populations that split in the past, \ie\ of a jSFS, may be obtained.
+An aim of population genetics is the inference of the population history or of population genetic parameters, representing forces such as mutation, selection, and drift, given population genetic data. Such data are typically aligned sequences of individuals from the present. In regions of relatively high recombination rates, sites can be assumed to evolve independently and data can be represented as a site frequency spectrum of a single population or as joint site frequency spectra of two or more populations. Forward processes, such as the discrete Wright-Fisher and Moran models and the continuous forward diffusion, allow the calculation of population allele frequencies forward in time, conditional on an initial allele frequency distribution. Backward processes consist, in the discrete case, of iteration of the transpose of the transition matrix or, in the continuous case, of the backward diffusion equation. Such backward processes can be used to push back conditioning on allele frequencies backward in time. As with the forward-backward algorithm of hidden Markov models, forward and backward processes can be combined to calculate the exact joint probability distribution of sample and population allele frequencies at all times in the past. Additionally, conditional allele trajectories and marginal likelihoods of samples from single populations or from multiple populations that split in the past can be obtained. This allows efficient inference of maximum likelihood estimates of population genetic parameters in a wide variety of demographic scenarios.
 \end{abstract}
 \begin{keyword}
-bi-allelic mutation-drift models \sep Markov chain \sep time reversal \sep forward and backward diffusion \sep conditional allele frequency distribution \sep inference.
+bi-allelic mutation-drift models \sep site frequency spectrum \sep Markov chain \sep forward and backward diffusion \sep forward-backward algorithm \sep maximum marginal likelihood \sep exact inference.
 \end{keyword}
 
 \end{frontmatter}
@@ -123,34 +125,32 @@ bi-allelic mutation-drift models \sep Markov chain \sep time reversal \sep forwa
 
 \section{Introduction}
 
-Most basic population genetic models, \eg\ the Wright-Fisher and the Moran models as well as the forward and backward diffusion models, were introduced before molecular sequence data became available \citep{Ewen04}. Thus, emphasis was on demonstrating processes over time and on qualitatively explaining observations, rather than on quantitative inference of population genetic forces given molecular data. On the other hand, coalescent theory \citep{King82} has been used both for demonstration of processes as well as for inference given a population sample \citep{Hein05,Wake09}. Wherease coalescence reconstructs the history of a particular sample at a particular locus reconstructed conditional on population genetic forces, the aim in statistical population genetics is most often the inference of evolutionary forces or of the evolutionary trajectory of allelic proportions of the whole population.
+Most basic population genetic models, \eg\ the Wright-Fisher and the Moran models as well as the forward and backward diffusion models, were introduced before molecular sequence data became available \citep[reviewed in][]{Ewen04}. Thus, emphasis was on demonstrating processes over time and on qualitatively explaining observations, rather than on quantitative inference of population genetic forces given molecular data. Much later, coalescent theory \citep{King82} has been used both for demonstration of processes as well as for inference given a population sample \citep{Hein05,Wake09}. The coalescence reconstructs the history of a particular sample at a particular locus conditional on population genetic forces. The aim in statistical population genetics is, however, usually the inference of evolutionary forces or of the evolutionary trajectory of allelic proportions of the whole population.
 
 %In regions of relatively high recombination rates compared to mutation rates, sites may be assumed to evolve independently. Usually, mutation rates are low such that most sites in, \eg\ \textit{Drosophila} or mammal population samples are monomorphic (fixed), while only two bases segregate at polymorphic sites. Therefore, most genomic sites are bi-allelic with respect to their nucleotide composition or when compared to an ancestral state. %Population data are usually represented as a site frequency spectrum (SFS) for a single population or a joint site frequency spectrum (jSFS), for two populations that split some time in the past.
 
-Typically, the data $Y$ are from the present, $t=0$, and consist of an alignment of $M$ (haploid) sequences. Often it is assumed that the data are independently and identically drawn from a population across $L$ sites, which assumes relatively high recombination rates. Such a dataset can be summarized as a site frequency spectrum (SFS). Its likelihood can be calculated given the present population allele frequency $X_0$ and a probability model describing the sampling process. The distribution of $X_0$ is in turn given by a population genetic model parametrized by, \eg\ the scaled mutation rate $\theta=N\mu$, the mutation bias $\alpha$, and the selection strength $\gamma=Ns$ \citep[\eg][]{Vogl15}. Summing or integrating over all values of $X_0$, the marginal likelihood $\Pr(Y\given \alpha,\theta,\gamma)$ may be obtained. Under assumption of equilibrium, maximum likelihood inference of population genetic parameters is possible \citep{Vogl14b,Vogl15}, a strategy that may also be viewed as the empirical Bayes method \citep[\eg][]{Carl00}. 
+Typically, the data $\y$ are from the present, $t=0$, and consist of an alignment of $M$ (haploid) sequences. Often it is assumed that the data are independently and identically drawn from a population across $L$ sites, which implies relatively high recombination rates. Such ata can be summarized as a site frequency spectrum (SFS). The likelihood can be calculated given the present population allele frequency $\x{0}$ of allele one and a probability model of the sampling process. The distribution of $\x{0}$ is in turn given by a population genetic model parametrized by, \eg\ the scaled mutation rate $\theta=N\mu$ and the mutation bias $\alpha$. Summing or integrating over all values of $\x{0}$, the marginal likelihood $\Pr(\y\given \alpha,\theta,\dots)$ may be obtained. Under assumption of equilibrium, maximum likelihood inference of population genetic parameters is possible \citep{Vogl14b,Vogl15}, a strategy that may also be viewed as the empirical Bayes method \citep[\eg][]{Carl00}. 
 
-Maximum likelihood inference is more complicated with data from two or more populations that split some time in the past, represented by a jSFS. Models iterating forward in time such as the Wright-Fisher, Moran or continuous diffusion models, have rarely been used for this task. Backward processes can be used to calculate the likelihood of the data $Y$ conditional on the population allele frequency $X_t$  at earlier times ($t<0$). In the discrete case, the process consists of iterating the transpose of the forward transition matrix; in the continuous case, a solution to the backwards diffusion equation is needed. Combining the forward and backward processes in the forward-backward algorithm of hidden Markov models (HMM) \citep{Rabi86}, the probability distribution of population allele frequencies conditional on data $\Pr(X_t\given Y,\dots)$ can be inferred at time $t$ in the past and the distribution of conditional trajectories may be simulated. Additionally, it is possible to calculate the marginal likelihoods of samples from multiple splitting populations, \ie\ from a jSFS, by integrating out the population allele frequencies.
+Maximum likelihood inference is more complicated with data from two or more populations that split some time in the past, represented by a joint SFS (jSFS). Models iterating forward in time such as the Wright-Fisher, Moran, or continuous diffusion models, have rarely been used for this task. Backward processes can be used to calculate the likelihood of the data $\y$ conditional on the population allele frequency $\x{t}$  at earlier times ($t<0$). In the discrete case, the process consists of iterating the transpose of the forward transition matrix; in the continuous case, a solution to the backward diffusion equation is needed. Combining the forward and backward processes, as with the forward-backward algorithm of hidden Markov models (HMM) \citep{Rabi86}, the probability distribution of population allele frequencies conditional on data $\Pr(\x{t}\given \y,\dots)$ can be inferred at time $t$ in the past and the distribution of conditional trajectories can be simulated. Additionally, it is possible to calculate the marginal likelihoods of samples from multiple splitting populations, \ie\ from a jSFS, by integrating out the population allele frequencies.
 
 Based on the Wright-Fisher model, \citet{Zhao14} provide an algorithm to calculate probabilities of intermediate states conditional on the starting and end states. This allows simulation of conditional trajectories. 
 
-\citet{Schrempf2016} use a Moran model with a reversible mutation matrix in phylogenetic inference. The "pruning algorithm" \citep{Fels81} allows computation of the likelihood from the tips of a phylogenetic tree down to the root, \ie\ in a backward fashion. Assuming reversibility simplifies the computation of the likelihood of a tree, as the direction of time may be altered and the root may be assumed at any branch. With a reversible mutation matrix and the Moran model, the Markov chain employed by \citet{Schrempf2016} is reversible. But even assuming reversibility, summation over all $N+1$ ancestral states is necessary at each node, \ie\ looking forward in time, at each binary split into two populations or, looking backward in time, at each fusion of two populations to one ancestral population. As summation becomes difficult with large $N$, mutation rates are scaled such that $N$ can be taken small. Note that sample sizes $M$ can be large for sequence data from pooled individuals or from many populations and information is inevitably lost if $M>N$. Therefore, such data are  difficult to analyze accurately. 
+\citet{Schrempf2016} use a Moran model in phylogenetic inference. The ``pruning algorithm'' \citep{Fels81} allows computation of the likelihood from the tips of a phylogenetic tree down to the root, \ie\ in a backward fashion. Assuming reversibility simplifies the computation of the likelihood of a tree, as the direction of time may be altered and the root may be assumed at any branch. With a reversible mutation matrix and the Moran model, the Markov chain employed by \citet{Schrempf2016} is reversible. But even assuming reversibility, summation over all $N+1$ ancestral states is necessary at each node, \ie\ looking forward in time, at each binary split into two populations or, looking backward in time, at each fusion of two populations to one ancestral population. As summation becomes difficult with large $N$, mutation rates are scaled such that $N$ can be taken small. Note that the sample sizes $M$ can be large for sequence data from pooled individuals or from many populations and information is inevitably lost if $M>N$. Therefore, such data are  difficult to analyze accurately. 
 
 In this article, we use forward and backward processes to conveniently calculate probability distributions in time conditional on the SFS or the jSFS from the present. %In discrete time, this corresponds to a variant of the forward-backward algorithm \citep{Rabi86}. The method can also be used to calculate likelihoods of jSFS. 
 Furthermore, we introduce bi-allelic population genetic models, with mutations occurring only at fixed sites, that are variants of the infinite site or Poisson-random-fields models \citep{Kimu69,Sawy92}. The Markov chains of the models under consideration have no absorbing states and therefore have stationary distributions. We do not always assume time-reversibility.
 
-For the discrete models, matrix multiplication is necessary to iterate the distribution of population allele frequencies forward and backward in time. The size of the transition matrix depends on the population size $N$ and multiplication can become cumbersome if $N$ is large. However, the size of the matrix can be reduced by appropriate rescaling of population genetic parameters.
-
-In the limit $N\to\infty$, the corresponding Kolmogorov forward and backward diffusion equations are obtained. With mutation and drift only, orthogonal polynomials provide a flexible and fast method to solve the diffusion equations and calculate marginal likelihoods for inference in population genetics.
+For the discrete models, the transition matrix is multiplied repeatedly to obtain the distribution of population allele frequencies forward and backward in time. The size of the transition matrix depends on the population size $N$; multiplication can become cumbersome if $N$ is large. In the limit $N\to\infty$, the corresponding Kolmogorov forward and backward diffusion equations are obtained. With only mutation and drift, orthogonal polynomials provide a flexible and fast method to solve the diffusion equations and calculate marginal likelihoods for inference in population genetics. For most purposes, expansion up to the order of the sample size $M$ suffices. As $M$ is usually much less than $N$, continuous diffusion models may be much more efficient than equivalent discrete models.
 
 \section{Time-homogeneous discrete Markov chains}
 
-In this section we apply the forward-backward algorithm to discrete population genetic models for inference given a SFS or jSFS. To this purpose, we rephrase iteration using discrete population genetic models (Wright-Fisher or Moran) in the terminology of the forward-backward algorithm. We mainly use matrix notation to emphasize the similarities between discrete iteration and the continuous models in Sections~\ref{forwBackDiff} and ~\ref{section:diffDer}. Many subsections are reviews of standard theory included for completeness and clarity. 
+In this section we apply the forward-backward algorithm \citep{Rabi86} to discrete population genetic models for inference given a SFS or jSFS. To this purpose, we rephrase iteration using discrete population genetic models (Wright-Fisher or Moran) in the terminology of the forward-backward algorithm. We mainly use matrix notation to emphasize the similarities between discrete iteration and the continuous models in Sections~\ref{forwBackDiff} and ~\ref{section:diffDer}. For completeness and clarity, subsections include reviews of standard theory. 
 
 \subsection{Assumptions}\label{section:assumptions}
 \begin{enumerate}[(i)]
-\item Assume a haploid population of size $N$ and some bi-allelic mutation model. The time-dependent frequency of allele zero in the population at time $t$ is denoted $\x{t}$ ($0 \le \x{t} \le N$) and is assumed to evolve as a discrete, time-homogeneous Markov chain with a transition probability matrix $\mathbf{T}$, where $(T_{ij})_{i,j \in \{0, \ldots, N\}} = \Pr(\x{t+1}=j \given \x{t}=i)$. $\mathbf{T}$ is an irreducible, aperiodic, right stochastic matrix.
+\item Assume a haploid population of size $N$ and some bi-allelic mutation model. The time-dependent frequency of allele one in the population at time $t$ is denoted $\x{t}$ ($0 \le \x{t} \le N$) and is assumed to evolve as a discrete, time-homogeneous Markov chain with a transition probability matrix $\mathbf{T}$, where $(\mathbf{T})_{ij}=\Pr(\x{t+1}=j \given \x{t}=i)$ with $i,j \in \{0, \ldots, N\}$. $\mathbf{T}$ is an aperiodic, right stochastic matrix.
 \item At a (possibly unknown) time $t=\s$ ($\s<0$) in the past, a distribution of population allelic proportions is given by $\bs{\rho}$ with entries $(\rho_{i})_{i \in \{0, \ldots, N\}} = \Pr(\x{\s}=i)$.  In particular, $\bs{\rho}$ may be the stationary distribution $\bs{\pi}=(\pi_i)_{i \in \{0, \ldots, N\}}$ or may correspond to a joint distribution of some other data and the equilibrium allele frequency distribution. 
-\item The population evolves until the present time $t=0$, when a sample of size $M$ is drawn.  We denote the sampled frequency of allele zero as $\y$ ($0 \le \y \le M$). The probability of observing $\y$, \ie\ the likelihood, is $\Pr(\y \given M, \x{0})$ (we may drop the dependency on $M$ in the following) and will be defined according to the application.
+\item The population evolves until the present time $t=0$, when a sample of size $M$ is drawn.  We denote the sampled frequency of allele one as $\y$ ($0 \le \y \le M$). The probability of observing $\y$, \ie\ the likelihood, is $\Pr(\y \given M, \x{0})$ (we may drop the dependency on $M$ in the following) and will be defined according to the application.
 \end{enumerate}
 
 For two populations, assumptions (ii) and (iii) are modified:
@@ -160,44 +160,38 @@ For two populations, assumptions (ii) and (iii) are modified:
 \item The two populations evolve independently until the present time $t=0$, when samples of sizes $M_1$ and $M_2$ are drawn from each population.
 \end{enumerate}
 
-For discrete models, iteration is more efficient if the population size $N$ is small. $N$ can be decreased by increasing the mutation rate $\mu$ such that their product $\theta=N \mu$ remains constant. For moderate $N$, the error introduced by such scaling is small and converges to $0$ in the diffusion limit $N \to \infty$. Therefore, $N$ can be set according to numerical convenience. %Furthermore, adjusting $\mu$ does not change the state space and is thus more convenient than adjusting $N$.
-
-%For the discrete models, note that $\theta$ corresponds to the mutation rate scaled with the effective population size. A small population size $N$ leads to more efficient iteration and for moderate $N$ changing the mutation rate is almost indistinguishable from changing the population size (and becomes identical in the diffusion limit of $N\to\infty$). Therefore, $N$ is usually set for numerical convenience and the mutation rate $\mu$ is adjusted to achieve realistic $\theta$, such that $\mu=\theta/N$. Furthermore, adjusting $\mu$ does not change the state space and is thus more convenient than adjusting $N$.
+For discrete models, iteration is more efficient if the population size $N$ is small. $N$ can be decreased by increasing the mutation rate $\mu$ such that their product $\theta=N \mu$ remains constant. For moderate $N$, the error introduced by such scaling is small and converges to $0$ in the diffusion limit $N \to \infty$. Therefore, $N$ can be set according to numerical convenience. Often, our data are from the present and we want to condition on the configuration of allele frequencies at earlier times.
 
 \subsection{Forward in time}
 
-Often, our data are from the present and we want to condition on the configuration of allele frequencies at earlier times.  We introduce the row vector $\fv{t}$ with entries $(\fv{t})_{i} = \Pr(X_{t} = i)$ and set $\fv{\s} = \bs{\rho}$, \ie\ to the vector of initial probabilities of states, and define recursively: 
+We introduce the row vector $\fv{t}$ with entries $(\fv{t})_{i} = \Pr(\x{t} = i)$, where ${i \in \{0, \ldots, N\}}$, and set $\fv{\s} = \bs{\rho}$, \ie\ to the vector of initial probabilities of states, and define recursively: 
 \begin{equation}
 \fv{t+1} = \fv{t}\mathbf{T} \quad (\s \le t < 0).
 \end{equation}
-This corresponds to the forward method in the forward-backward algorithm in the theory of Hidden Markov models (HMM)~\citep[\eg][]{Vogl10}. Let $\oneC$ be a column vector of ones ($'$ depicts matrix transposition) and $\mathbf{D}$ a diagonal matrix with the conditional likelihoods on the main diagonal, \ie\ $(\mathbf{D})_{ii}=\Pr(\y \given \x{0}=i)$. The marginal likelihood then is
+This corresponds to the forward method in the forward-backward algorithm in the theory of Hidden Markov models (HMM)~\citep[\eg][]{Rabi86,Vogl10}. Let $\mathbf{d}'$ be a column vector of ones ($'$ depicts matrix transposition) corresponding to the conditional of the sampling process, such that $(\mathbf{d})_i=\Pr(\y \given \x{0}=i)$ with ${i \in \{0, \ldots, N\}}$. The marginal likelihood then is
 \begin{equation}\label{eq:marg_lh}
-\Pr(\y \given \bs{\rho}) = \bs{\rho}\mathbf{T}^{|\s|}\mathbf{D}\oneC.
+\Pr(\y \given \bs{\rho}) = \bs{\rho}\mathbf{T}^{|\s|}\mathbf{d}'.
 \end{equation}
 
 \subsection{Backward in time}\label{section:backward}
 
-Using a strategy as with the backward method in the theory of HMM, set $\bv{0}'=\mathbf{D}\oneC$. Backward in time, the recursion is
+Using a strategy as with the backward method in the theory of HMM \citep{Rabi86,Vogl10}, set $\bv{0}'=\mathbf{d}'$. Backward in time, the recursion is
 \begin{equation}
 \begin{split}
-\bv{t}' = \mathbf{T} \bv{t+1}' \quad (\s \le t <0),
+\bv{t}' = \mathbf{T} \bv{t+1}' \quad (\s \le t <0)\,,
 \end{split}
 \end{equation}
 which can also be written as
 \begin{equation}\label{eq:backwards_discrete}
 \begin{split}
-\Pr(\y \given \x{t}=i) = \sum_j \Pr(\x{t+1}=j \given \x{t}=i) \Pr(\y \given \x{t+1}=j).
+(\bv{t})_i=\Pr(\y \given \x{t}=i) = \sum_j \Pr(\x{t+1}=j \given \x{t}=i) \Pr(\y \given \x{t+1}=j).
 %&=\sum_j q_{ij} \Pr(\y \given \x{t+1}=j).
 \end{split}
 \end{equation}
-From the definition of $\bv{t}$, it follows that we condition on $\x{t}$
-\begin{equation}
-(\bv{t})_{i} = \Pr(\y \given \x{t}=i).
-\end{equation}
-The recursion moves the conditioning to ever earlier times. The marginal likelihood (\ref{eq:arg_lh}) may also be obtained as follows:
-\begin{equation}\label{eq:marg_lh}
+From the definition of $\bv{t}$, it follows that we condition on $\x{t}$. The recursion moves the conditioning to ever earlier times. The marginal likelihood (\ref{eq:marg_lh}) may also be obtained as follows:
+\begin{equation}\label{eq:marg_lh_alternative}
 \begin{split}
-\Pr(\y \given \bs{\rho}) &= \bs{\rho} \left[\mathbf{T}^{|\s|} \mathbf{D}\oneC\right]\\
+\Pr(\y \given \bs{\rho}) &= \bs{\rho} \left[\mathbf{T}^{|\s|} \mathbf{d}'\right]\\
                          &= \fv{\s} \bv{\s}' \\
                          &= \sum_i \rho_i \Pr(\y \given \x{\s}=i).
 \end{split}
@@ -207,14 +201,14 @@ The recursion moves the conditioning to ever earlier times. The marginal likelih
 
 The marginal likelihood (\ref{eq:marg_lh}) is constant over time $t$ 
 \begin{equation}
-\Pr(\y \given \bs{\rho}) = \fv{t}\bv{t}' =\sum_i \Pr(\x{t}=i \given \bs{\rho}) \Pr(\y \given \x{t}=i) = \norm{ \fv{t}, \bv{t} },
+\Pr(\y \given \bs{\rho}) = \fv{t}\bv{t}' =\sum_i \Pr(\x{t}=i \given \bs{\rho}) \Pr(\y \given \x{t}=i) = \langle\fv{t}, \bv{t} \rangle,
 \end{equation}
-where $\norm{ \cdot , \cdot }$ denotes an inner product.  It follows that the forward and backward transition matrices, \ie\ $\mathbf{T}$ and its transpose $\mathbf{T}'$, are adjoint since
+where $\langle \cdot , \cdot \rangle$ denotes an inner product.  It follows that the forward and backward transition matrices, \ie\ $\mathbf{T}$ and its transpose $\mathbf{T}'$, are adjoint since
 \begin{equation}\label{eq:adjoint_discrete}
 \begin{split}
 \Pr(\y \given \bs{\rho})              &= \Pr(\y \given \bs{\rho}) \\
 (\fv{t}\mathbf{T})\bv{t+1}' &= \fv{t} (\mathbf{T}\bv{t+1}') \\
-\norm{ \fv{t}\mathbf{T},\bv{t+1} }  &= \norm{\fv{t},\bv{t+1}\mathbf{T}' }.
+\langle \fv{t}\mathbf{T},\bv{t+1} \rangle  &= \langle\fv{t},\bv{t+1}\mathbf{T}' \rangle.
 \end{split}
 \end{equation}
 Like a zipper, this adjoint relationship allows movement forward and backward in time.
@@ -228,23 +222,24 @@ Furthermore, the probability of $\x{t}$ conditional on the data and the starting
 \begin{equation}\label{eq:cond_x|y_discr}
 \Pr(\x{t}=i \given \y,\bs{\rho}) = \frac{(\fv{t})_i (\bv{t})_i}{\fv{t}\bv{t}'}\,.
 \end{equation}
-This allows calculation of the distribution of population allele frequencies conditional on the data at any time. 
+This allows calculation of the distribution of population allele frequencies conditional on the data and an initial condition at any time. 
 
 \subsection{Sampling from conditional trajectories}
 
 It is possible to simulate trajectories given the initial distribution $\bs{\rho}$ at time $\s$ and the likelihood at time $t=0$. Note that \citet{Zhao14} provide a similar algorithm based on the Wright-Fisher model to simulate trajectories of population allelic proportions conditional on the starting and end states. In contrast, we start with a sample at time $t=\s$ from the conditional probabilities (\ref{eq:cond_x|y_discr}). Given the state at time $t-1$ the probability of the state at time $t$ is
-\begin{equation}
+\begin{equation}\label{eq:cond_transition}
     \Pr(\x{t}=j\given \x{t-1}=i,\y)=\frac{(\mathbf{T})_{ij}(\mathbf{b}_{t})_j}{(\mathbf{b}_{t-1})_i}\,,
 \end{equation}
-which can be used to obtain a sample trajectory. For $t>s$ the formula does not contain $\bs{\rho}$ since it is a Markov process.
+which can be used to obtain a sample trajectory. Although the probability distribution of trajectories depends on $\rho(x)$, eq.~(\ref{eq:cond_transition}) does not contain $\bs{\rho}$ since it is a Markov process.
 
 \subsection{Left and right eigenvectors, stationary distribution}
 
-Let $\bs{\pi} = (\pi_i)_{i \in \{0,\ldots,N\}}$ be the stationary distribution of $\mathbf{T}$, if it exists. $\bs{\pi}$ is the left eigenvector associated with the largest eigenvalue one~\citep[][p. 87]{Ewen04}
+Let $\bs{\pi} = (\pi_i)_{i \in \{0,\ldots,N\}}$ be the stationary distribution of $\mathbf{T}$, if it exists.%\todo[inline]{CV: talk with Dominik! without mutation, no stationary distribution!} 
+$\bs{\pi}$ is the left eigenvector associated with the largest eigenvalue one~\citep[][p. 87]{Ewen04}
 \begin{equation}\label{eq:stationary}
 \bs{\pi}=\bs{\pi}\mathbf{T}.
 \end{equation}
-All entries of $\bs{\pi}$ are greater than zero because the transition matrix was assumed to be irreducible and $\sum \pi_i = 1$. Thus the entries of $\bs{\pi}$ can be interpreted as probabilities. Since the rows of $\mathbf{T}$ sum to one, it is obvious that a column vector of all ones $\oneC$ is the right eigenvector associated with the unit eigenvalue. In our context, this means that iterating forward in time will converge to a vector proportional to $\bs{\pi}$ and iterating backward in time to a vector proportional to $\oneC$. Thus, every state is equally likely when  $s\to-\infty$. % CV: The backward algorithm does not conserve the total probability mass. Hence, going backward is only proportional to $\oneR$.
+All entries of $\bs{\pi}$ are greater than zero because the transition matrix was assumed to be irreducible and $\sum \pi_i = 1$. Thus the entries of $\bs{\pi}$ can be interpreted as probabilities. Since the rows of $\mathbf{T}$ sum to one, it is obvious that a column vector of all ones $\oneC$ is the right eigenvector associated with the unit eigenvalue. In our context, this means that iterating forward in time will converge to a vector proportional to $\bs{\pi}$ and iterating backward in time to a vector proportional to $\oneC$. Thus, every state is equally likely when  $s\to-\infty$, \ie\ we have no information about the initial distribution of states, because the process already has reached equilibrium. % CV: The backward algorithm does not conserve the total probability mass. Hence, going backward is only proportional to $\oneC$.
 
 \subsection{Reversibility}
 
@@ -257,12 +252,11 @@ Define the diagonal matrix $\mathbf{\Pi}$ with the entries $\pi_i$ on the main d
 The Markov chain is reversible, if $\mathbf{T}^{*}=\mathbf{T}'$, because then
 \begin{equation}\label{eq:detailed_balance}
 \begin{split}
-  \mathbf{T}' &= \mathbf{T}^{*} \\
-             &= \mathbf{\Pi}\mathbf{T}\mathbf{\Pi}^{-1}, \text{ or} \\
-  \mathbf{T}'\mathbf{\Pi} &= \mathbf{\Pi T},
+  \mathbf{T}' &= \mathbf{\Pi}\mathbf{T}\mathbf{\Pi}^{-1}\\
+  \mathbf{T}'\mathbf{\Pi} &= \mathbf{\Pi T}\,,
 \end{split}
 \end{equation}
-which corresponds to detailed balance.
+which corresponds to the condition of detailed balance.
 %This condition corresponds to a balanced flow between any pair of states, \ie\ the conditions of detailed balance
 % \begin{align}
 % \pi_i \Pr(\x{t+1}=j \given \x{t}=i)
@@ -298,8 +292,8 @@ The adjoint relationship~(\ref{eq:adjoint_discrete}) can be modified analogously
 \begin{split}
 \Pr(\y \given \bs{\rho})                              & = \Pr(\y \given \bs{\rho})                    \\
 (\gv{t}\mathbf{\Pi} \mathbf{T}) \bv{t+1}'             & = \gv{t}(\mathbf{T}^{'}\mathbf{\Pi}\bv{t+1}') \\
-\norm{ \gv{t}\mathbf{\Pi}\mathbf{T},\bv{t+1}}         & = 
-\norm{ \gv{t},\bv{t+1}\mathbf{\Pi}\mathbf{T} }.
+\langle \gv{t}\mathbf{\Pi}\mathbf{T},\bv{t+1}\rangle         & = 
+\langle \gv{t},\bv{t+1}\mathbf{\Pi}\mathbf{T}\rangle.
 \end{split}
 \end{equation}
 
@@ -310,11 +304,11 @@ As a particular realization of a discrete process consider a bi-allelic model, w
 The transition matrix $\mathbf{T}$ is defined as follows. Given a time-homogeneous mutation rate $\mu$, transition probabilities at the boundary zero are
 \begin{equation}\label{eq:boundary_mutation}
 \begin{cases}
-\Pr(\x{t+1}=0\given \x{t}=0)&=1-\mu/(1-\theta\sum_{i=1}^{N-1}1/i)\\
-\Pr(\x{t+1}=1\given \x{t}=0)&=\mu/(1-\theta\sum_{i=1}^{N-1}1/i),
+\Pr(\x{t+1}=0\given \x{t}=0)&=1-\mu/(1-\theta H_{N-1})\\
+\Pr(\x{t+1}=1\given \x{t}=0)&=\mu/(1-\theta H_{N-1}),
 \end{cases}
 \end{equation}
-where $\theta=\mu N$. Within the polymorphic region, random drift is the only force affecting allele frequencies, such that for $1\leq i \leq N-2$
+where $\theta=\mu N$ and the harmonic number $H_{N-1}=\theta\sum_{i=1}^{N-1}1/i$. With this definition, the mutation probability per Moran event $\mu$ is weighted by the expected time at the boundary, such that the average probability of mutations per Moran event is constant, irrespective of $N$ \todo{CV: I rewrote this again.}. Within the polymorphic region, random drift is the only force affecting allele frequencies, such that for $1\leq i \leq N-2$
 \begin{equation}
 \begin{cases}
 \Pr(\x{t+1}=i-1\given \x{t}=i) &=\frac1{N^2} i(N-i)\\
@@ -335,18 +329,26 @@ The state $N$ is never reached and is left out of the state space. The system is
 The stationary distribution  is 
 \begin{equation}\label{eq_dist}
 \bs{\pi}(i)=\begin{cases}
-\Pr(\x{}=0)&=1-\theta\sum_{i=1}^{N-1}1/i\\
+\Pr(\x{}=0)&=1-\theta H_{N-1}\\
 \Pr(\x{}=i)_{i \in \{1, \ldots, N-1\}} &=\theta/i\,,
 \end{cases}
 \end{equation}
-as can be ascertained by substitution.
+as can be ascertained by substitution. 
 
-As an example of a demographic scenario (Fig.~\ref{diag}A), consider a population with a stationary allele frequency distribution \eqref{eq_dist} defined by the ancestral mutation rate $\mu_a$ at some time $s$ in the past; \ie\ $\bs{\rho} = \bs{\pi_a}$. Furthermore, assume an instantaneous expansion of the population size between generations $s$ and $s+1$. From then on, the population is out of equilibrium and evolving with a new current mutation rate $\mu_c$. At present time ($t=0$), 
-we sample $M$ haplotypes from the population. Assume that the ancestral state of the sampled haplotypes can be determined without error. Thus, a polarized SFS may be constructed. For any value of $\mu_c$ and $N$, a transition matrix $\mathbf{T}$ can be calculated using the described framework. Furthermore, the matrix $\mathbf{T}^{'}$ can be used to iterate the conditioning of the allele frequency distribution backwards in time. Assume a hypergeometric distribution of $Y$, conditional on $N$, $i$, and $M$
+Assume a hypergeometric likelihood of $\y$, conditional on $N$, $\x{0}=i$, and $M\leq N$
 \begin{equation}\label{X0}
-\Pr(\y\given N,i,M)=\frac{\binom{i}{\y}\binom{N-i}{M-\y}}{\binom{N}{M}}\,,
+\Pr(\y\given N,\x{0}=i,M)=\frac{\binom{i}{\y}\binom{N-i}{M-\y}}{\binom{N}{M}}\,,
 \end{equation}
-where $0\leq \y\leq M$ and $0\leq i\leq (N-1)$. The conditional probabilities of allelic states $\Pr(\y \given \bs{\rho})$, for any time $s\leq t\leq 0$, in a site frequency spectrum of size $M$ can then be calculated (Fig.~\ref{cProb}). %For inference given a SFS, the marginal likelihood can be maximized by searching the parameter spaces of $\mu_a$, $\mu_c$, and $t$.
+where $0\leq \y\leq M$ and $0\leq i\leq (N-1)$. In equilibrium, the joint distribution is obtained by multiplying the stationary distribution with the likelihood. Summing out the population allele frequency $\x{0}$, the marginal distribution is obtained
+\begin{equation}
+\Pr(\y\given M)=\begin{cases}
+\Pr(\y=0\given M)&=1-\theta H_{M-1}\\
+\Pr(\y=i\given M)_{i \in \{1, \ldots, M-1\}} &=\theta/i\,.
+\end{cases}
+\end{equation}
+It follows that the expected heterozygosity, \ie\ the probability of obtaining two alleles in a sample of size $M=2$, is $\theta$. \todo{CV: I rearranged and added a part to help arguing later. The proof for the formula above is recursive starting with $M=N-1$.}
+
+As an example of a demographic scenario (Fig.~\ref{diag}A), consider a population with a stationary allele frequency distribution \eqref{eq_dist} defined by the ancestral mutation rate $\mu_a$ at some time $s$ in the past; \ie\ $\bs{\rho} = \bs{\pi_a}$. Furthermore, assume an instantaneous expansion of the population size between generations $s$ and $s+1$. From then on, the population is out of equilibrium and evolving with a new current mutation rate $\mu_c>\mu_a$. At the present time ($t=0$), we sample $M$ haplotypes from the population. Assume that the ancestral state of the sampled haplotypes can be determined without error. Thus, a polarized SFS may be constructed. The transition matrix $\mathbf{T}$ and its transpose $\mathbf{T}^{'}$ can be calculated conditional on $\mu_c$. Assume  hypergeometric sampling. The conditional probabilities of allelic states $\Pr(\x{t} \given \y,\bs{\rho})$, for any time $s\leq t\leq 0$, in a site frequency spectrum of size $M$ can then be calculated (Fig.~\ref{cProb}).\todo{CV: I corrected the last sentence ($\x{}$ and $\y$ wrong).}\todo{DS: Result should be more exciting.} %For inference given a SFS, the marginal likelihood can be maximized by searching the parameter spaces of $\mu_a$, $\mu_c$, and $t$.
 
 \subsection{Example: Joint site frequency spectrum under reversible mutation}\label{section:discr_rev_general}
 As another realization of a discrete process consider a bi-allelic mutation-drift decoupled Moran model~\citep{Baak08,Ethe09} with haploid population size $N$, mutation rate towards zero $\mu_0$ and mutation rate towards one $\mu_1$ ($\mu=\mu_0+\mu_1$).  We introduce the parameters $\alpha=\mu_1/\mu$ ($0 \leq \alpha \leq 1$) and $\beta=1-\alpha=\mu_0/\mu$ which are the mutation biases towards allele one and zero, respectively.  Let $i$ ($0\leq i\leq N$) be the frequency of allele one. Then, the tri-diagonal transition rate matrix $\mathbf{T}$ depends on $N$, $\mu$ and $\alpha$
@@ -359,12 +361,12 @@ As another realization of a discrete process consider a bi-allelic mutation-drif
 \end{equation}
 
 The stationary distribution of $\x{}$ is a beta-binomial
-\begin{equation}\label{beta_bin}
+\begin{equation}\label{eq:beta_bin}
 \Pr(\x{}=i\given N,\alpha,\theta)=\binom{N}{i}
 \frac{\Gamma(\theta)}{\Gamma(\alpha\theta)\Gamma(\beta\theta)}
-\frac{\Gamma(i+\alpha\theta)\Gamma(N-i+\beta\theta)}{\Gamma(N+\theta)}\,.
+\frac{\Gamma(i+\alpha\theta)\Gamma(N-i+\beta\theta)}{\Gamma(N+\theta)}\,,
 \end{equation}
-The assertion can be verified by substitution into the equations of detailed balance~\eqref{eq:detailed_balance}. Conditional on the sample size $M$, where $M\leq N$, the sample allele frequency distribution at time $t=0$ is conveniently taken as a hypergeometric distribution conditional on $N$, $i$, and $M$ as in~\eqref{X0}.
+which can be verified by substitution into the equations of detailed balance~\eqref{eq:beta_bin}. As above, hypergeometric sampling at time $t=0$ is assumed.
 
 %\subsubsection{Sample from the stationary distribution}
 
@@ -381,7 +383,7 @@ The assertion can be verified by substitution into the equations of detailed bal
 %\Gamma(x+\alpha\mu)\Gamma(N-x+\beta\mu)(x+\alpha\mu)&=\Gamma(x+1+\alpha\mu)(\Gamma(N-x-1+\beta\mu)(N-x-1+\beta\mu)\,.
 %\end{split}
 %\end{equation}
-%Assuming equilibrium, the marginal likelihood of a single sample of size $M$ is again a beta-binomial.
+Assuming equilibrium, the marginal likelihood of a single sample of size $M$ is again a beta-binomial.\todo{I think we should leave this in, as we have the identical formula in the continuous case!}
 %Below and commented out is the proof for the above assertion:
 %\begin{equation}\label{eq:betabin_allover}
 %\begin{split}
@@ -397,11 +399,11 @@ The assertion can be verified by substitution into the equations of detailed bal
 %\begin{equation}
 %\begin{split}
 %&\Pr(y\given K-1,\alpha,\mu)=
-%\frac{K-y+1}{K+1}\Pr(y\given K,\alpha,\mu)+\frac{y+1}{K+1}\Pr(y+1\given %K,\alpha,\mu)\\
+%\frac{K-y+1}{K+1}\Pr(y\given K,\alpha,\mu)+\frac{y+1}{K+1}\Pr(y+1\given K,\alpha,\mu)\\
 %&=\frac{\Gamma(\mu)}{\Gamma(\alpha\mu)\Gamma(\beta\mu)}\left(
 %\frac{K-y+1}{K+1} \frac{(K+1)!}{y!(K-y+1)!}\frac{\Gamma(y+\alpha\mu)\Gamma(K+1-y+\beta\mu)}{\Gamma(K+1+\mu)}\right.\\
 %&\qquad\left.+\frac{y+1}{K+1} \frac{(K+1)!}{(y+1)!(K-y)!}\frac{\Gamma(y+1+\alpha\mu)\Gamma(K-y+\beta\mu)}{\Gamma(K+1+\mu)}\right)
-%\\
+\\
 %&=\binom{K}{y}\frac{\Gamma(\mu)}{\Gamma(\alpha\mu)\Gamma(\beta\mu)}\frac{\Gamma(y+\alpha\mu)\Gamma(K-y+\beta\mu)}{\Gamma(K+\mu)}\left(
 %\frac{K-y+\beta\mu}{K+\mu}
 %+\frac{y+\alpha\mu}{K+\mu}\right)
@@ -411,16 +413,17 @@ The assertion can be verified by substitution into the equations of detailed bal
 %\end{split}
 %\end{equation}
 
-Consider an ancestral population with stationary allele frequency distribution~\eqref{beta_bin}. The ancestral population splits into two at some time $s$ in the past (Fig.~\ref{diag}B). Assume, for simplicity, that equilibrium is maintained in both populations. A jSFS is simulated from both populations (Table~\ref{jointSFSdiscr}) at the present time $t=0$. The likelihood of the split time $t$ can be calculated given the jSFS (Figure~\ref{twoPopdiscr}A).
+Consider an ancestral population with stationary allele frequency distribution~\eqref{eq:beta_bin}. The ancestral population splits into two at some time $s$ in the past (Fig.~\ref{diag}B). For simplicity, no change in the mutation and drift parameters in both populations is assumed. A jSFS is simulated from both populations (Table~\ref{jointSFSdiscr}) at $t=0$. The likelihood of the split time $s$ calculated given the jSFS (Figure~\ref{twoPopdiscr}A) has a single maximum close to the true value of $t=-40$.
+
+\paragraph{Summary, discrete Markov chains.} With standard discrete population genetic models, \eg  the Wright-Fisher or the Moran models, iteration of discrete Markov chains forward in time corresponds to the forward algorithm and backward in time to the backward algorithm of the forward-backward algorithm \citep{Rabi86}. With such algorithms, it is straightforward to calculate exact likelihoods given SFS and jSFS from the present. Some standard population genetic mutation models are reversible, others are not. In contrast to phylogenetic applications \citep{Fels81,Schrempf2016}, reversibility of the Markov chain does not simplify calculations considerably; in both cases, iteration of an $(N+1)\times (N+1)$ transition matrix is needed.
+
 
 %%%%%%%%%
 %% From here on continuous, i.e., diffusion!!!
 %%%%%%%%%
-
-
 \section{Forward and backward diffusion equations}\label{forwBackDiff}
 
-In this section, we provide theory for the continuous analogs of the discrete forward and backward transition probabilities both for reversible and irreversible Markov processes and illustrate with examples. We derive the forward and backward diffusion equations from the discrete Moran model using only the definition of the first and second symmetric derivative in Appendix~(\ref{section:diffDer}).\todo{CV: we are not using a Taylor series as usual, but only the definition of the first and symmetric second derivatives.}
+In this section, we provide theory for the continuous analogs of the discrete forward and backward transition probabilities both for reversible and irreversible Markov processes and illustrate with examples. We derive the forward and backward diffusion equations from the discrete recurrent mutation-drift Moran model using only the definitions of the first and second symmetric derivative (Appendix~\ref{section:diffDer}).
 
 With the forward and backward diffusion operators 
 \begin{equation}\label{eq:forw_backw_operator}
@@ -432,48 +435,49 @@ With the forward and backward diffusion operators
 the forward and backward diffusion equations are written as
 \begin{equation}\label{eq:forw_backw_diff}
 \begin{split}
-\frac{\partial}{\partial \tau}\phi(x,\tau)&={\cal L} \phi(x\given \tau,\rho)\\
--\frac{\partial}{\partial \tau}\psi(x,\tau)&={\cal L}^{*} \psi(\y\given x, \tau)\,.
+\frac{\partial}{\partial \tau}\phi(x\given\tau,\rho)&={\cal L} \phi(x\given \tau,\rho)\\
+-\frac{\partial}{\partial \tau}\psi(\y\given x,\tau)&={\cal L}^{*} \psi(\y\given x, \tau)\,.
 \end{split}
 \end{equation}
-The operators ${\cal L}$ and ${\cal L}^{*}$ together with the boundary conditions correspond to the forward transition matrix $\mathbf{T}$ and its transpose $\mathbf{T}^{'}$, respectively. %\todo{CV: I moved a paragraph.}
+Obviously, the functions $\phi(x\given \tau,\rho)$ and $\psi(\y\given x, \tau)$ must be twice differentiable in the open interval $(0,1)$. The operators ${\cal L}$ and ${\cal L}^{*}$ together with the boundary conditions correspond to the forward transition matrix $\mathbf{T}$ and its transpose $\mathbf{T}^{'}$, respectively. %\todo{CV: I moved a paragraph.}
 
 \subsection{Forward and backward in time}
 
-As in the discrete case, consider the situation when the distribution of $x$ at time $\tau=\s$ is given by $\rho(x)$. The likelihood of the data $\y$, conditional on $x$ at time $\tau=0$ is $\psi(\y\given x,\tau=0)$. Setting $\phi(x\given \tau=\s,\rho)=\rho(x)$, $\phi(x\given \tau=0,\rho)$ can be calculated using the forward diffusion equation~(\ref{eq:forw_backw_diff}). In the backward time direction, set  $\psi(\y\given x,\tau=0)=\Pr(\y\given x,\tau=0)$. With the backward diffusion equation~(\ref{eq:forw_backw_diff}), the conditioning on $x$ may be moved backward in time. The marginal likelihood of $\y$ may be obtained by integration over the product of the forward and backward functions. Analogous to the discrete case, we require the marginal likelihood, \ie\ the integral over the product of the forward and backward functions with respect to the allelic proportion $x$, to be constant irrespective of time:
-% TODO CV or JB: This does not match the formula above (is it the same? or does Dom miss something?  Where did the "sampling step" go?
-%CV: did the insertion of , "with..." above fix this problem?
+As in the discrete case, consider the situation when the distribution of the continuous allelic proportion $x$ at time $\tau=\s$ is given by $\rho(x)$. Assume again a discrete sample of size $M$ with a frequency of $\y$ alleles of type one at time $\tau=0$. Since the allelic proportion is now assumed to be continuous, sampling is binomial and the likelihood is $\Pr(\y\given x,\tau=0,M)$. Setting $\phi(x\given \tau=\s,\rho)=\rho(x)$, $\phi(x\given \tau=0,\rho)$ can be calculated using the forward diffusion equation~(\ref{eq:forw_backw_diff}). In the backward time direction, set  $\psi(\y\given x,\tau=0)=\Pr(\y\given x,\tau=0,M)$. With the backward diffusion equation~(\ref{eq:forw_backw_diff}), the conditioning on $x$ may be moved backward in time. The marginal likelihood of $\y$ may be obtained by integration over the product of the forward and backward functions 
 \begin{equation}\label{eq:marg_like}
-\Pr(y\given\rho) = \int_{0}^{1} \phi(x\given \tau,\rho)\psi(\y\given x,\tau)  \,dx \qquad\text{for $s<\tau<0$.}
+\Pr(\y\given\rho) = \int_{0}^{1} \phi(x\given \tau,\rho)\psi(\y\given x,\tau)  \,dx \qquad\text{for $s\leq \tau\leq 0$.}
 \end{equation}
-Furthermore, for any marginal likelihood of a discrete random variable $0\leq \Pr(y\given\rho) \leq 1$ must hold.
+As with the discrete case, we require the marginal likelihood to be constant irrespective of time. Furthermore, for any marginal likelihood of a discrete random variable $0\leq \Pr(y\given\rho) \leq 1$ must hold. This constrains the boundary conditions. 
 
-As $\Pr(y\given\rho)$ is constant irrespective of time, its derivative with respect to time $\tau$ must be $0$. Applying the product rule to $\Pr(y\given\rho)$ and substituting the forward and backward operators for the time derivatives, we have the adjoint relationship
-\begin{equation}\label{eq:adjoint_continuous}
+As $\Pr(\y\given\rho)$ is independent of time $\tau$, its derivative with respect to time $\tau$ must be $0$. Exchanging the order of differentiation and integration and applying the product rule to $\Pr(\y\given\rho)$, we have 
+\begin{equation}\label{eq:time_trick}
 \begin{split}
  \frac{\partial}{\partial\tau} \Pr(y\given \rho) &= 0\\
- %\frac{\partial}{\partial\tau}\int_{0}^{1} \phi(x,\tau) \psi(x,\tau)\,dx&=0\\
-\int_{0}^{1} \left[\frac{\partial}{\partial\tau} \phi(x\given\tau,\rho)\right] \psi(\y\given x,\tau)\,dx &= -\int_{0}^{1} \phi(x\given\tau,\rho) \left[\frac{\partial}{\partial\tau} \psi(\y\given x,\tau)\right] dx\\
-\int_{0}^{1} \left[{\cal L}\,\phi(x\given\tau,\rho)\right] \psi(x,\tau)\,dx &= \int_{0}^{1}  \phi(x,\tau) \left[{\cal L}^{*} \psi(\y\given x,\tau)\right] dx\\
-\norm{{\cal L}\,\phi(x\given\tau,\rho), \psi(\y\given x,\tau)} &= \norm{ \phi(x\given\tau,\rho),{\cal L}^{*} \psi(\y\given x,\tau)}.
+ %\frac{\partial}{\partial\tau}\int_{0}^{1} \phi(x\given \tau) \psi(\y\given \tau)\,dx&=0\\
+\int_{0}^{1} \left[\frac{\partial}{\partial\tau} \phi(x\given\tau,\rho)\right] \psi(\y\given x,\tau)\,dx &+\int_{0}^{1} \phi(x\given\tau,\rho) \left[\frac{\partial}{\partial\tau} \psi(\y\given x,\tau)\right] dx=0\,.
 \end{split}
 \end{equation}
- At each time-point, any change to the marginal likelihood from applying the forward operator ${\cal L}$ to the forward function $\phi(x\given\tau,\rho)$ is exactly matched by a change from applying the backward operator ${\cal L}^{*}$ to the backward function $\psi(\y\given x,\tau)$. As in the discrete case, the adjoint relationship allows movement forward and backward in time. But, unlike with discrete time and space, we have to consider not only the interior but also the boundary conditions. 
-
+Substituting the forward and backward operators (eqs.~\ref{eq:forw_backw_diff}) for the time derivatives, we have the adjoint relationship
+\begin{equation}\label{eq:adjoint_continuous}
+\begin{split}
+\int_{0}^{1} \left[{\cal L}\,\phi(x\given\tau,\rho)\right] \psi(\y\given \tau)\,dx &= \int_{0}^{1}  \phi(x\given\tau,\rho) \left[{\cal L}^{*} \psi(\y\given x,\tau)\right] dx\\
+\langle{\cal L}\,\phi(x\given\tau,\rho), \psi(\y\given x,\tau)\rangle &= \langle \phi(x\given\tau,\rho),{\cal L}^{*} \psi(\y\given x,\tau)\rangle.
+\end{split}
+\end{equation}
+ At each time-point, any change to the marginal likelihood from applying the forward operator ${\cal L}$ to the forward function $\phi(x\given\tau,\rho)$ is exactly matched by a change from applying the backward operator ${\cal L}^{*}$ to the backward function $\psi(\y\given x,\tau)$. As in the discrete case, the adjoint relationship allows movement forward and backward in time. 
+ 
 \subsection{Adjointness, Self-Adjointness, and Reversibility}
 
-The adjoint relationship~(\ref{eq:adjoint_continuous}) requires the boundary condition~(\ref{eq:bound_cond_1}) in Appendix~(\ref{section:is_adjoint?}) to hold. 
-
-Introduce the weight function, 
+The adjoint relationship~(\ref{eq:adjoint_continuous}) requires the boundary condition~(\ref{eq:bound_cond_1}) to hold (Appendix~\ref{section:is_adjoint?}). Introduce the weight or speed function \citep[\eg][]{Ewen04,Song12}
 \begin{equation}\label{eq:weight_function}
-    w(x)=\frac1{Q(x)}e^{\int_0^x -\frac{P(z)}{Q(z)}\,dz}\,,
+    w(x)=\frac1{Q(x)}e^{\int_0^x -\frac{P(z)}{Q(z)}\,dz}\,.
 \end{equation}
-which is also called speed function \citep[\eg][]{Ewen04,Song12}. Substituting  $w(x)g(x,\tau,\rho)$ for $\phi(x\given\tau,\rho)$, the condition~(\ref{eq:bound_cond_1}) becomes (see Appendix~(\ref{section:is_adjoint?}))
+Substituting  $w(x)g(x,\tau,\rho)$ for $\phi(x\given\tau,\rho)$, the boundary condition~(\ref{eq:bound_cond_1}) becomes (Appendix~\ref{section:is_adjoint?})
 \begin{equation}\label{eq:bound_cond}
-w(x)Q(x)\frac{d}{d x}\left(g(x,\tau,\rho)\psi(\y\given x,\tau)\right)\big|_0^1=0\,.
+w(x)Q(x)\frac{d}{d x}\bigg(g(x,\tau,\rho)\psi(\y\given x,\tau)\bigg)\bigg|_0^1=0\,.
 \end{equation}
 
-Assume $w(x)$ is invertible, and substitute $w(x)g(x,\tau,\rho)$ for $\phi(x\given\tau,\rho)$ into the general forward equation (\ref{eq:forw_backw_diff}): 
+Assume $w(x)>0$ for $x\in[0,1]$, and substitute $w(x)g(x,\tau,\rho)$ for $\phi(x\given\tau,\rho)$ into the general forward equation (\ref{eq:forw_backw_diff}) 
 \begin{equation}
 \begin{split}
 \frac{\partial}{\partial \tau} w(x)g(x,\tau,\rho)&=-\frac{\partial}{\partial x}P(x)w(x)g(x,\tau,\rho)+\frac{\partial^2}{\partial x^2}Q(x)w(x) g(x,\tau,\rho)\\
@@ -484,12 +488,14 @@ w(x)\frac{\partial}{\partial \tau}g(x,\tau,\rho)&=P(x)w(x)\frac{\partial}{\parti
 \frac{\partial}{\partial \tau}g(x,\tau,\rho)&=P(x)\frac{\partial}{\partial x}g(x,\tau,\rho)+Q(x)\frac{\partial^2}{\partial x^2}g(x,\tau,\rho)\,.
 \end{split}
 \end{equation}
-If the stationary distribution $\pi(x)$ is proportional to the weight function $w(x)$ and the boundary condition~(\ref{eq:bound_cond}) holds, the Markov process is self-adjoint and reversible. We may then write the relationship between the forward operator ${\cal L}$ and its adjoint ${\cal L}^{*}$ compactly
+Note that the last line is identical to the backward equation~(\ref{eq:forw_backw_diff}), with the exception of the reversed sign to the left. If the stationary distribution $\pi(x)$ exists, it is proportional to $w(x)$. %\todo[inline]{DS: I think the stationary distribution, if it exists, is always proportional to the weight function. CV: I agree.} %If additionally the boundary condition~(\ref{eq:bound_cond}) holds,
+%\todo{CV: We require the boundary condition to hold by eq.~(\ref{eq:adjoint_continuous})} 
+%\todo{CV: Or rearrange to:}
+Substituting $\pi(x)g(x,\tau,\rho)$ for $\phi(x\given\tau,\rho)$ into the marginal likelihood~(\ref{eq:marg_like}), it follows that $g$ and $\phi$  are square integrable with respect to the weight function $\pi(x)\propto w(x)$ \citep{Song12}. Then the Markov process is self-adjoint and reversible and the relationship between the forward operator ${\cal L}$ and its adjoint ${\cal L}^{*}$ may be written compactly
 \begin{equation}\label{compact}
 {\cal L}^{*}=\frac1{\pi(x)}\left[{\cal L}\pi(x)\right],
 \end{equation}
-similar to the reversed transition matrix (\ref{eq:reverse_transition}) in the discrete case.\todo{CV: Is this true?}
-
+similar to the reversed transition matrix (eq.~\ref{eq:reverse_transition}) or to the condition of detailed balance (eq.~\ref{eq:detailed_balance}) in the discrete case.
 
 \subsection{Joint and conditional distributions}
 
@@ -499,192 +505,192 @@ j(x,\y \given \tau)= \phi(x\given \tau,\rho)\psi(\y\given,x,\tau)\,.
 \end{equation}
 For the conditional distribution of the allelic proportion $x$ given the sample allele frequency $y$, corresponding to eq.~(\ref{eq:cond_x|y_discr}) in the discrete case, $j(x,\y \given \tau)$ must be divided by the marginal likelihood (\ref{eq:marg_like})
 \begin{equation}\label{eq:cond_x|y}
-p(x\given \tau,\rho,\y)= \frac{h(x,\y\given \tau)}{\Pr(y\given \rho)}\,.
+p(x\given \tau,\rho,\y)= \frac{j(x,\y\given \tau)}{\Pr(y\given \rho)}\,.
 \end{equation}
 
 \subsection{Recurrent mutation and drift and orthogonal polynomials}
 
-In population genetics $Q(x)$ is generally half the genetic variance: $Q=x(1-x)$ with the biallelic Moran model. In the context we consider, the backward function $\psi(x,\tau)$ at time $\tau=0$ is a binomial likelihood, \ie\ a polynomial of the degree of the sample size $M$. Without selection, the backward function remains a polynomial with degree $M$ between the present and the starting point. 
+In population genetics $Q(x)$ is generally half the genetic variance, $Q=x(1-x)$ with the biallelic Moran model (see also Appendix~\ref{section:diffDer}). In the context we consider, the backward function $\psi(\y\given x,\tau)$ at time $\tau=0$ is a binomial likelihood, \ie\ a polynomial of the degree of the sample size $M$. Without selection, the backward function remains a polynomial with degree $M$ for $s\leq \tau\leq 0$. 
 
-With the recurrent bi-allelic mutation-drift model, \citet{Song12} already demonstrated self-adjointness and showed how to use modified Jacobi polynomials to obtain a solution. For the recurrent mutation-drift model, the weight function $w(x,\alpha,\theta)$ is proportional to the stationary distribution 
+With the recurrent bi-allelic mutation-drift model, \citet{Song12} already demonstrated self-adjointness and showed how to use modified Jacobi polynomials to obtain a solution. For the recurrent mutation-drift model, the weight function $w(x,\alpha,\theta)=x^{\alpha\theta-1}(1-x)^{\beta\theta-1}$ is proportional to the stationary distribution 
 \begin{equation}
     \pi(x)=\frac{\Gamma(\theta)}{\Gamma(\alpha\theta)\Gamma(\beta\theta)}\,x^{\alpha\theta-1}(1-x)^{\beta\theta-1}\,.
 \end{equation}
-The weight function is 
-\begin{equation}
-w(x)=x^{\alpha\theta-1}(1-x)^{\beta\theta-1}\,.
-\end{equation}
-Since $Q(x)=x(1-x)$, the boundary condition (\ref{eq:bound_cond}) holds if, at both boundaries $x=0$ and $x=1$, $x(1-x)w(x)=0$ and  $\psi(\y\given x,\tau)$ and $g(x,\tau,\rho)$ are finite. Since  $x(1-x)w(x)= x^{\alpha\theta}(1-x)^{\beta\theta}$ is zero at both boundaries for the non-degenerate case of $\theta>0$ and $0<\alpha<1$, the boundary condition holds if $\frac{\partial}{\partial x}\big(g(x,\tau,\rho)\psi(\y\given x,\tau))$ is finite at the boundaries, which can be assumed for population genetic applications. 
+Since $Q(x)=x(1-x)$, the boundary condition (\ref{eq:bound_cond}) holds if, at both boundaries $x=0$ and $x=1$, $x(1-x)w(x)=0$ and  $\psi(\y\given x,\tau)$ and $g(x,\tau,\rho)$ are finite. Since  $x(1-x)w(x)= x^{\alpha\theta}(1-x)^{\beta\theta}$ is zero at both boundaries for the non-degenerate case of $\theta>0$ and $0<\alpha<1$, the boundary condition~(\ref{eq:bound_cond}) holds if $\frac{\partial}{\partial x}\big(g(x,\tau,\rho)\psi(\y\given x,\tau))$ is finite at the boundaries, which can be assumed for population genetic applications. 
 
-Let $g,\phi \in L^2([0,1],w(x))$ denote the space of real valued functions with respect to the weight function $w(x)$. For $g(x,\tau)$ and $\psi(x,\tau)$, define the inner product as the marginal likelihood, which is constant irrespective of time and required to be between zero and one.
+%Let $g,\phi \in L^2([0,1],w(x))$ denote the space of real valued functions with respect to the weight function $w(x)$. For $\phi(x\given\tau,\rho)=w(x)g(x,\tau,\rho)$ and $\psi(\y\given x,\tau)$, define the inner product as the marginal likelihood~(\ref{eq:marg_like}), which is constant irrespective of time and required to be between zero and one.
 
-The (modified) Jacobi polynomials $R_n^{(\alpha,\theta)}(x)$ are eigenvectors of the backward operator
+The (modified) Jacobi polynomials (compare formula~22.3.2 in \citet{Abra70})
 \begin{equation}
-    -\lambda_n R_n^{(\alpha,\theta)}(x)={\cal L}^{*}R_n^{(\alpha,\theta)}(x)\,.
+  R_n^{(\alpha,\theta)}(x)=\sum_{l=0}^n(-1)^l\frac{\Gamma(n-1+l+\theta)\Gamma(n+\alpha\theta)}{\Gamma(n-1+\theta)\Gamma(l+\alpha\theta)l!(n-l)!}x^l\,
 \end{equation}
-The modified Jacobi polynomials can be represented explicitly:
+are eigenvectors of the backward operator
 \begin{equation}
-  R_n^{(\alpha,\theta)}(x)=\sum_{l=0}^n(-1)^l\frac{\Gamma(n-1+l+\theta)\Gamma(n+\alpha\theta)}{\Gamma(n-1+\theta)\Gamma(l+\alpha\theta)l!(n-l)!}x^l\,;
+    -\lambda_n R_n^{(\alpha,\theta)}(x)={\cal L}^{*}R_n^{(\alpha,\theta)}(x)\,,
 \end{equation}
-the corresponding eigenvalues are $\lambda_n=n(n+\theta-1)$. Since a binomial distribution with sample size $M$ corresponds to a polynomial of order $M$ (which integrates to one) 
+with eigenvalues 
 \begin{equation}
-\Pr(y\given M,x)=\binom{M}{y}\,x^{y}(1-x)^{M-y}
-=\binom{M}{y}\,\sum_{i=0}^{M-y} \binom{M-y}{i}\,(-x)^{y+i}\,,
+    \lambda_n=n(n+\theta-1)\,.
 \end{equation}
-the likelihood can be represented by an expansion with coefficients $c_n$ into the modified Jacobi polynomials up to order $M$. 
+The corresponding eigenfunctions of the forward operator are $w(x)R_n^{(\alpha,\theta)}(x)$ with identical eigenvectors.   
+
+Since a binomial distribution with sample size $M$ corresponds to a polynomial of order $M$ the likelihood can be represented by an expansion with coefficients $c_n(\y)$ into the modified Jacobi polynomials up to order $M$. Note that a change in the effective population size (population demography), or equivalently in the scaled mutation rate from $\theta_a$ to $\theta_c$ needs to be accommodated with a change in the base from  $R_n^{\alpha\theta_a}(x)$ to $R_n^{\alpha\theta_c}(x)$. 
 
 The orthogonality relationship of the modified Jacobi polynomials is
 \begin{equation}\label{eq:ortho_Jacobi}
     \int_0^1 R_n^{(\alpha,\theta)}(x) R_m^{(\alpha,\theta)}(x)\, w(x)\,dx=\delta_{n,m} \Delta_n^{(\alpha,\theta)}\,,
 \end{equation}
-where $\delta_{n,m}$ the Kronecker delta, and 
+where $\delta_{n,m}$ is the Kronecker delta, and 
 \begin{equation}
     \Delta_n^{(\alpha,\theta)}=\frac{\Gamma(n+\alpha\theta)\Gamma(n+\alpha\theta)}{(2n+\theta-1)\Gamma(n+\theta-1)\Gamma(n+1)}\,.
 \end{equation}
-The forward eigenfunctions are $w(x)R_n^{(\alpha,\theta)}(x)$.   
 
-In analogy with the discrete situation, we use matrix notation and define the infinite-dimensional diagonal matrix $\mathbf{B}$ with the polynomials $R_n^{(\alpha,\theta)}(x)$ as entries on the main diagonal, the infinite-dimensional diagonal matrix $\mathbf{Q}(\tau)$ with the exponential functions $e^{-\lambda\tau}$ as entries on the main diagonal, the infinite-dimensional diagonal matrix $\mathbf{C}$ with entries $c_n$ on the main diagonal (from $n=M+1$ onwards the entries are set to zero) and the infinite-dimensional row and column vectors of one's. The backward function is then represented as
+%\todo[inline]{CV: DS wrote that he does not understand the example next. JB also wrote that sums may be better. Thus I write an alternative to this part immedeiately below.}
+%In analogy with the discrete situation, we use matrix notation and define the infinite-dimensional diagonal matrix $\mathbf{B}$ with the polynomials $R_n^{(\alpha,\theta)}(x)$ as entries on the main diagonal, the infinite-dimensional diagonal matrix $\mathbf{Q}(\tau)$ with the exponential functions $e^{-\lambda\tau}$ as entries on the main diagonal. The column vector $\mathbf{c}'$ with entries $c_n$ represents the coefficients of the expansion of the likelihood into the modified Jacobi polynomials. The backward function is then represented as
+%\begin{equation}
+%\psi(\y\given x,\tau)=\oneR\mathbf{B}(x)\mathbf{Q}(0-\tau)\mathbf{c}'\,,
+%\end{equation}
+%with $\psi(\y\given x,\tau=0)=\Pr(\y\given M,x)$ corresponding to the likelihood.
+
+%Let $\bs{\rho}$ be a column vector of the coefficients of the expansion of the starting distribution $\rho(x)$ at time $\tau=s$. The forward eigenfunctions can be obtained by multiplication of the backward eigenfunctions with the weight function, such that 
+%\begin{equation}
+%\phi(x\given\tau,\rho)=w(x)\bs{\rho}\mathbf{Q}(\tau-s)\mathbf{B}(x)\oneC\,,
+%\end{equation}
+%with $\phi(x\given\tau=s,\rho)=\rho(x)$. The joint distribution of the allelic proportion $x$ and the data $y$ at time $\tau$ can be represented as
+%\begin{equation}
+%j(x,\y\given \tau,\rho)=\phi(x\given\tau,\rho)\psi(\y\given x,\tau)\,.
+%\end{equation}
+%The orthogonality relationship can be used to simplify the marginal likelihood
+%\begin{equation}
+%\Pr(\y\given\rho)=\int_0^1 \phi(x\given\tau,\rho)\psi(\y\given x,\tau)\,dx\,.
+%\end{equation}
+%With the column vector
+%\begin{equation}
+%\bs{b}'(\tau)=\mathbf{B}(x)\mathbf{Q}(-\tau)\mathbf{c}'
+%\end{equation}
+%and the row vector
+%\begin{equation}
+%\bs{f}(\tau)=w(x)\bs{\rho}\mathbf{Q}(\tau-s)\mathbf{B}(x)
+%\end{equation}
+%the marginal likelihood of the data can be represented as
+%\begin{equation}
+%\Pr(\y\given\rho)=\int_0^1 \bs{f}(\tau)\bs{b}'(\tau)\,dx\,,
+%\end{equation}
+%and the conditional probability of $x$ given the data $y$ is
+%\begin{equation}
+%p(x\given\y,\rho)=\frac{j(x,\y\given \tau,\rho)}{\Pr(\y\given\rho)}\,.
+%\end{equation}
+
+Let $c_n(\y)$ be the coefficients of the expansion of the likelihood into the modified Jacobi polynomials, which breaks off at $n=M$. Then the backward equation can be written as
 \begin{equation}
-\psi(\y\given x,\tau)=\oneR\mathbf{B}(x)\mathbf{Q}(0-\tau)\mathbf{C}\oneC\,,
+\psi(\y\given x,\tau)= \sum_{n=0}^M c_n(\y) R_n^{(\alpha,\theta)}(x) e^{-\lambda_n \tau}\,,
 \end{equation}
 with $\psi(\y\given x,\tau=0)=\Pr(\y\given M,x)$ corresponding to the likelihood.
 
-Let $\bs{\rho}$ be the expansion of the starting distribution $\rho(x)$ at time $\tau=s$ into the modified Jacobi polynomials. The forward eigenfunctions can be obtained by multiplication of the backward eigenfunctions with the weight function, such that 
+Let $\rho_n$ be the coefficients of the expansion of the starting distribution $\rho(x)$ at time $\tau=s$. The forward eigenfunctions can then be represented as 
 \begin{equation}
-\phi(x\given\tau,\rho)=w(x)\bs{\rho}\mathbf{Q}(\tau-s)\mathbf{B}(x)\oneC\,,
+\phi(x\given\tau,\rho)=w(x) \sum_{n=0}^\infty \rho_n R_n^{(\alpha,\theta)}(x) e^{-\lambda_n (s-\tau)}\,,
 \end{equation}
-with $\phi(x\given\tau=s,\rho)=\rho(x)$.
-
-\todo[inline]{CV: An alternative to this notation in the paragraph below}
-Using notation from physics, it makes sense to define the column vector
+with $\phi(x\given\tau=s,\rho)=\rho(x)$. The joint distribution of the allelic proportion $x$ and the data $y$ at time $\tau$ can be represented as
 \begin{equation}
-|\psi(\y\given x,\tau)\rangle=\mathbf{B}(x)\mathbf{Q}(-\tau)\mathbf{C}\oneC
+j(x,\y\given \tau,\rho)=\phi(x\given\tau,\rho)\psi(\y\given x,\tau)\,.
 \end{equation}
-and the row vector
-\begin{equation}
-\langle\phi(x\given\tau,\rho)|=w(x)\bs{\rho}\mathbf{Q}(\tau-s)\mathbf{B}(x)\,.
+The orthogonality relationship can be used to simplify the marginal likelihood
+\begin{equation} \label{eq:marg_like_recurrent}
+\begin{split}
+\Pr(\y\given\rho)&=\int_0^1 \phi(x\given\tau,\rho)\psi(\y\given x,\tau)\,dx\\
+    &=\int_0^1 \sum_{n=0}^M \rho_n c_n(\y) w(x) \big(R_n^{(\alpha,\theta)}(x)\big)^2 e^{-\lambda_n \tau}\,dx\\
+    &=\int_0^1 \sum_{n=0}^M \rho_n c_n(\y) \Delta_n e^{-\lambda_n \tau}\,dx\,. 
+\end{split}
 \end{equation}
-Then the joint distribution of the allelic proportion $x$ and the data $y$ at time $\tau$ can be represented as
-\begin{equation}
-j(x,\y\given \tau,\rho)=\langle\phi(x\given\tau,\rho)|\psi(\y\given x,\tau)\rangle\,.
-\end{equation}
-Note that diagonal matrices commute among each other. The marginal likelihood of the data is
-\begin{equation}
-\Pr(\y\given\rho)=\norm{\langle\phi|\psi\rangle}=\int_0^1 \langle\phi(x\given\tau,\rho)|\psi(\y\given x,\tau)\rangle\,dx\,,
-\end{equation}
-and the conditional probability of $x$ given the data $y$ is
+The conditional probability of $x$ given the data $y$ is
 \begin{equation}
 p(x\given\y,\rho)=\frac{j(x,\y\given \tau,\rho)}{\Pr(\y\given\rho)}\,.
 \end{equation}
 
-\todo[inline]{CV: The alternative to the paragraph above}
-With the column vector
-\begin{equation}
-\bs{b}'(t)=\mathbf{B}(x)\mathbf{Q}(-\tau)\mathbf{C}\oneC
-\end{equation}
-and the row vector
-\begin{equation}
-\bs{f}(t)=w(x)\bs{\rho}\mathbf{Q}(\tau-s)\mathbf{B}(x)
-\end{equation}
-the joint distribution of the allelic proportion $x$ and the data $y$ at time $\tau$ can be represented as
-\begin{equation}
-j(x,\y\given \tau,\rho)=\bs{f}(t)\bs{b}'(t)\,.
-\end{equation}
-The marginal likelihood of the data is
-\begin{equation}
-\Pr(\y\given\rho)=\int_0^1 \bs{f}(t)\bs{b}'(t)\,dx\,,
-\end{equation}
-and the conditional probability of $x$ given the data $y$ is
-\begin{equation}
-p(x\given\y,\rho)=\frac{j(x,\y\given \tau,\rho)}{\Pr(\y\given\rho)}\,.
-\end{equation}
+Because of the orthogonality relation (\ref{eq:ortho_Jacobi}), for calculating the marginal likelihood~(\ref{eq:marg_like_recurrent}) only an expansion in eigenfunctions up to order $M$ is needed, where $M$ is the minimum of the forward-in-time expansion of $\rho(x)$, say $M_f$, and the backward-in-time expansion of $\Pr(\y|x,\tau=0)$, say $M_b$. For $j(x,\y\given \rho)$ and thus also $p(x\given \y,\rho)$, an expansion up to order $M_f\times M_b$ is needed.
 
-The similarity to the corresponding equations in the discrete case is obvious. Because of the orthogonality relation (\ref{eq:ortho_Jacobi}), for calculating the marginal likelihood $p(y)$ only an expansion in eigenfunctions up to order $M$ is needed, where $M$ is the minimum of the forward-in-time expansion of $\rho(x)$, say $M_f$, and the backward-in-time expansion of $p(y|x,\tau=0)$, say $M_b$. For $p(x,y)$ and thus also $p(x\given y)$, an expansion up to order $M_f\times M_b$ is needed.
-
-\todo[inline]{CV: Should be equivalent to M\"ohle's 1999 concept of duality. We could then use the duality concept further down with the boundary mutation model.}
+%\todo[inline]{CV: Should be equivalent to M\"ohle's 1999 concept of duality. We could then use the duality concept further down with the boundary mutation model.}
 
 \subsubsection{Example: two splitting populations and binomial likelihoods}
 
-Here, we apply the theory to a model with two populations and binomial likelihoods, \ie\ a jSFS analogous to the second example in the discrete case (subsection~\ref{section:discr_rev_general}). At time $\tau=0$, the marginal likelihood of a single-population sample of size $M$ assuming mutation-drift equilibrium with parameters $\alpha$ and $\theta$ is
+Here, we apply the theory to a model with two populations and binomial likelihoods, \ie\ a jSFS analogous to the second example in the discrete case (subsection~\ref{section:discr_rev_general}). The initial distribution $\rho(x)$ is assumed to be the equilibrium distribution. Only the first eigenfunction is necessary to expand the equilibrium distribution,\ie\ $\rho_0=\frac{1}{\Delta_0^{(\alpha,\theta)}}$ while $\rho_{n\geq1}=0$. In equilibrium, the marginal likelihood of a single-population sample of size $M$ assuming mutation-drift equilibrium with parameters $\alpha$ and $\theta$ is a beta-binomial, as in the discrete case (\ref{eq:beta_bin}),
 \begin{equation}
 \begin{split}
-    \Pr(y\given M,\alpha,\theta)
-    &=\int_0^1 \Pr(y\given M,x) \pi(x,\alpha,\theta)\,dx\\
-    &=\int_0^1 \binom{M}{y}\frac{\Gamma(\theta)}{\Gamma(\alpha\theta)\Gamma(\beta\theta)}\,x^{\alpha\theta+y-1}(1-x)^{\beta\theta+M-y-1}\,dx\\
-    &=\binom{M}{y}\frac{\Gamma(\theta)}{\Gamma(\alpha\theta)\Gamma(\beta\theta)}
-    \frac{\Gamma(y+\alpha\theta)\Gamma(M-y+\beta\theta)}{\Gamma(M+\theta)}\,.
-\end{split}
-\end{equation}
-Only the first eigenfunction is necessary to expand the equilibrium distribution:
-\begin{equation}
-\begin{split}
-    \pi(x,\alpha,\theta)&=\frac{\Gamma(\theta)}{\Gamma(\alpha\theta)\Gamma(\beta\theta)}\,x^{\alpha\theta-1}(1-x)^{\beta\theta-1}\\
-    &=\frac{1}{\Delta_0^{(\alpha,\theta)}}R_0^{(\alpha,\theta)}(x)\,x^{\alpha\theta-1}(1-x)^{\beta\theta-1}\,.
+    \Pr(\y\given M,\alpha,\theta)
+    &=\int_0^1 \Pr(\y\given M,x) \pi(x,\alpha,\theta)\,dx\\
+    &=\int_0^1 \binom{M}{\y}\frac{\Gamma(\theta)}{\Gamma(\alpha\theta)\Gamma(\beta\theta)}\,x^{\alpha\theta+\y-1}(1-x)^{\beta\theta+M-\y-1}\,dx\\
+    &=\binom{M}{\y}\frac{\Gamma(\theta)}{\Gamma(\alpha\theta)\Gamma(\beta\theta)}
+    \frac{\Gamma(\y+\alpha\theta)\Gamma(M-\y+\beta\theta)}{\Gamma(M+\theta)}\,.
 \end{split}
 \end{equation}
 It follows from the orthogonality relation that only the first term in the expansion $n=0$ contributes to the marginal likelihood, \ie\ the inner product
 \begin{equation}
 \begin{split}
-    \Pr(y\given M,\alpha,\theta)&=\int_0^1 c_0 R_0^{(\alpha,\theta)}(x) \pi(x,\alpha,\theta)\,dx\\
-    &=\int_0^1 c_0 R_0^{(\alpha,\theta)}(x) \frac{1}{\Delta_0^{(\alpha,\theta)}}\,R_0^{(\alpha,\theta)}(x) x^{\alpha\theta-1}(1-x)^{\beta\theta-1}\,dx
-    =c_0.
+    \Pr(\y\given M,\alpha,\theta)&=\int_0^1 c_0(\y) R_0^{(\alpha,\theta)}(x) \pi(x,\alpha,\theta)\,dx\\
+    &=\int_0^1 c_0(\y) R_0^{(\alpha,\theta)}(x) \frac{1}{\Delta_0^{(\alpha,\theta)}}\,R_0^{(\alpha,\theta)}(x) x^{\alpha\theta-1}(1-x)^{\beta\theta-1}\,dx\\
+    &=c_0(\y)\,.
 \end{split}
 \end{equation}
 
-For two populations with sample sizes $M_1$ and $M_2$, the respective likelihoods $\Pr(y_1\given M_1)$ and $\Pr(y_2\given M_2)$ are similarly expanded into the modified Jacobi polynomials with coefficients $c_n^{(1)}$ and $c_m^{(2)}$, where the superscripts indicate the population. At time $\tau$ back in the past, we have
+For two populations with sample sizes $M_1$ and $M_2$, the respective likelihoods $\Pr(\y_1\given M_1)$ and $\Pr(\y_2\given M_2)$ are similarly expanded into the modified Jacobi polynomials with coefficients $c_n(\y_1)$ and $c_m(\y_2)$. At time $\tau$ back in the past, we have
 \begin{equation}
-    \Pr(y_1\given x, M_1,\alpha,\theta,\tau)=
-    \sum_{n=0}^{M_1} e^{-\lambda_n\tau}c_n^{(1)}R_n^{(\alpha,\theta)}(x)
+    \Pr(\y_1\given x, M_1,\alpha,\theta,\tau)=
+    \sum_{n=0}^{M_1} e^{-\lambda_n\tau}c_n(\y_1)R_n^{(\alpha,\theta)}(x)
 \end{equation}
-and similarly for the second population, such that the marginal likelihood is
-%TODO: the indices for the populations are not consistent (super- vs subscripts)! But this may require change in the discrete case too!
+and similarly for the second population. If the two populations join at time $\tau=s$ in the past, when the population is assumed to be in mutation-drift equilibrium, the marginal likelihood is
 \begin{equation}
 \begin{split}
-    \Pr(y_1,y_2\given M_1,M_2,\alpha,\theta,\tau)&=
-    \sum_{n=0}^{M_1}\sum_{m=0}^{M_2}\int_0^1 e^{-\lambda_n\tau}c_n^{(1)}R_n^{(\alpha,\theta)}(x)\\
-    &\qquad\times e^{-\lambda_m\tau}c_m^{(2)} R_m^{(\alpha,\theta)}(x)\pi(x,\alpha,\theta)  \,dx\\&=
-    \sum_{n=0}^{M}\int_0^1 e^{-2\lambda_n\tau}c_n^{(1)}c_n^{(2)} \left[R_n^{(\alpha,\theta)}(x)\right]^2\pi(x,\alpha,\theta)  \,dx\\
-    &=\sum_{n=0}^{M}\frac{e^{-2\lambda_n\tau}c_n^{(1)} c_n^{(2)}\Delta_n^{(\alpha,\theta)}}{\Delta_0^{(\alpha,\theta)}}\,,
+    &\Pr(\y_1,\y_2\given M_1,M_2,\alpha,\theta, \tau=s)=
+    \sum_{n=0}^{M_1}\sum_{m=0}^{M_2}\int_0^1 e^{-\lambda_n s}c_n(\y_1)R_n^{(\alpha,\theta)}(x)\\
+    &\qquad\qquad\times e^{-\lambda_m s}c_m(\y_2) R_m^{(\alpha,\theta)}(x)\pi(x,\alpha,\theta)  \,dx\\
+    &\qquad=
+    \sum_{n=0}^{M}\int_0^1 e^{-2\lambda_n s}c_n(\y_1)c_n(\y_2) \left[R_n^{(\alpha,\theta)}(x)\right]^2\pi(x,\alpha,\theta)  \,dx\\
+    &\qquad=\sum_{n=0}^{M}\frac{e^{-2\lambda_n s}c_n(\y_1) c_n(\y_2)\Delta_n^{(\alpha,\theta)}}{\Delta_0^{(\alpha,\theta)}}\,,
 \end{split}
 \end{equation}
-where $M$ is the minimum of $M_1$ and $M_2$, since higher order terms contribute zero weight to the inner product. 
+where $M=\min(M_1,M_2)$, since higher order terms contribute zero weight to the inner product. 
 
-Consider an ancestral population with a stationary beta allele frequency distribution parametrized by $\alpha$ and $\theta$; the ancestral population splits into two at some time in the past $\tau=s$. As before, the likelihood of the population split time is readily calculated given the jSFS (Figure~\ref{twoPopcont}). A joint site frequency spectrum is simulated from both populations (Table~\ref{jointSFScont}) at the present time $\tau=0$. The jSFS in Tables~1 and~2 are similar because scaled mutation rates and biases under which they are simulated are identical; for the discrete model, the population size is set to $20$  instead of approaching infinity as in the continuous model, which explains the slight differences.
+A joint site frequency spectrum is drawn (Table~\ref{jointSFScont}) at the present time $\tau=0$. Given the jSFS (Figure~\ref{twoPopcont}), the likelihood of the population split time is readily calculated. The jSFS in Tables~1 and~2 are similar because scaled mutation rates and biases under which they are simulated are identical; for the discrete model, the population size is set to $20$  instead of approaching infinity as in the continuous model, which together with sampling variation explains the slight differences.
+
+\paragraph{Summary, biallelic recurrent mutation-drift diffusion.} Assuming a biallelic recurrent mutation-drift model, forward and backward diffusion equations and continuous analogs to the discrete forward and backward algorithms as well as the forward-backward algorithm are derived. As with the discrete models, it is straightforward to calculate exact likelihoods given SFS and jSFS from the present. With the biallelic recurrent mutation-drift model a self-adjoint system results. Modified Jacobi polynomials $R_n^{\alpha\theta}(x)$ provide a convenient base for calculations, both forward and backward in time. While in the discrete case, iteration of an $N\times N$ transition matrix is needed, in the continuous case, only polynomials up to the sample size $M$ are needed with mutation-drift models. As $M\ll N$, this may lead to considerably increased efficiency. A change in the effective population size (population demography), or equivalently in the scaled mutation rate needs to be accommodated with a change in the base. 
 
 \section{Boundary mutation-drift model}\label{section:boundary_mutation_drift_cont}
 
-In this section, we start with the pure drift model and clarify basic concepts. Thereafter, we focus on the boundary-mutation drift model, where the forward direction is mainly a review, while the backward direction and the overall concepts are new. A similar model, with mutations from only one boundary, was derived by \citet{Evan07}.
+In this section, we start with the pure drift model and clarify basic concepts. Thereafter, we focus on the boundary-mutation drift model, where the forward direction is mainly a review, while the backward direction and the overall concepts are new. A model similar to our boundary mutation-drift model was derived and presented by \citet{Evan07}; it differs from our model as mutations are assumed to arise from only one boundary.
 
 \subsection{Pure drift model}\label{section:pure_drift}
 
 For the pure drift model, the adjoint relationship between the forward and backward operators holds as long as the boundary condition (\ref{eq:bound_cond_1}) with $P(x)=0$ and $Q=x(1-x)$ holds within the unit interval 
 \begin{equation}\label{eq:bound_pure_drift}
 \begin{split}
-    0&=\big(x(1-x)\phi\psi^{'}-(x(1-x)\phi)^{'}\psi\big)\big|_0^1\,.    
+    0&=\bigg(x(1-x)\phi\psi'-(x(1-x)\phi)'\psi\bigg)\big|_0^1\,.    
 \end{split}
 \end{equation}
-Following \citet{Kimu55}, most population geneticists implicitly or explicitly require at both boundaries $\psi(x,\tau)$ and $x(1-x)\phi(x,\tau)$ to be zero \citep[see also][]{Ewen04,Song12}. With these assumptions, modified Gegenbauer polynomials $U_n(x)$ are eigenfunctions of the forward diffusion equation, $x(1-x)U_n(x)$ are eigenfunctions of the backward equation, and the Markov process is self-adjoint with the weight function $w(x)=x^{-1}(1-x)^{-1}$. These assumptions are too restrictive, however: $\psi(x,\tau)=1$ and $\psi(x,\tau)=x$ cannot be represented by $x(1-x)U_n(x)$, but both are solutions to the pure drift backward equation; in fact they are both linearly independent eigenfunctions with zero eigenvalues. Assuming a binomial likelihood, these eigenfunctions are needed when representing monomorphic samples. Furthermore, assuming a recurrent mutation-drift model, the stationary beta distribution is infinite at the boundaries for small scaled mutation rates $\theta$ and converges to the weight function $w(x)=x^{-1}(1-x)^{-1}$ for $\theta\to0$ in the interior. Waxman and colleagues \citep{McKa07,Waxm11}, who we believe to initially  address these issues, provide a solution with eigenfunctions augmented by point masses at the boundaries \citep{McKa07,Waxm11}. A complementary approach leading to the same augmented eigenfunctions is that of \citet{Tran14b}.
+Following \citet{Kimu55}, most population geneticists implicitly or explicitly require at both boundaries $\psi(\y\given x,\tau)$ and $x(1-x)\phi(x\given\tau˛\rho)$ to be zero \citep[see also][]{Ewen04,Song12}. With these assumptions, modified Gegenbauer polynomials $U_n(x)=C_{n-2}^{(3/2)}(1-2x)$ (where $C_{i}^{(3/2)}$ are the Gegenbauer polynomials \citep{Abra70}) are eigenfunctions of the forward diffusion equation with eigenvalues $\lambda_n=n(n-1)$ for $n\geq 2$. Furthermore $x(1-x)U_n(x)$ are eigenfunctions of the backward equation with identical eigenvalues. The forward and backward operators are then self-adjoint with the weight function $w(x)=x^{-1}(1-x)^{-1}$ \citep{Ewen04,Song12}. Note that without mutation no stationary distribution exists.
 
-We start the presentation of the pure-drift model reiterating that the marginal likelihood is constant and has to be between zero and one. Assuming a pure-drift model, \citet{Tran14b} augment the eigenfunctions of the backward equation with $1$ and $x$. The two new backward eigenfunctions require augmenting the forward eigenfunctions with point masses at the boundaries that counterbalance the probability mass in the interior. Additionally, point masses at the boundaries, independent of those associated with the forward eigenfunctions, need to be introduced \citep{Tran14b}. \todo{CV: I took out Tran's eigenfunctions and refer to them later, because ours are more general and easier to derive with the power series expansion.}
+These assumptions are too restrictive, however: polynomials of zeroth and first degree $1$ and $x$ cannot be represented by $x(1-x)U_n(x)$, but both are eigenfunctions of the pure drift backward equation with eigenvalues $\lambda_0=\lambda_1=0$. Assuming a binomial likelihood, these eigenfunctions are needed when representing monomorphic samples. Furthermore, assuming a recurrent mutation-drift model, the stationary beta distribution is infinite at the boundaries for small scaled mutation rates $\theta$ and converges to the weight function $w(x)=x^{-1}(1-x)^{-1}$ for $\theta\to0$ in the interior. Waxman and colleagues \citep{McKa07,Waxm11}, who we believe to initially  address these issues, provide a solution with eigenfunctions augmented by point masses at the boundaries \citep{McKa07,Waxm11}. A complementary approach leading to similar augmented eigenfunctions is that of \citet{Tran14b}.
 
-Independently from \citet{Tran14b}, we derived a boundary mutation-drift model forward in time from probabilistic population genetic considerations \citep{Vogl15} with eigenfunctions proportional to those in \citet{Tran14b}. Our approach is similar to that presented in \citet{McKa07} and \citet{Waxm11}. Furthermore, we showed that the forward eigenfunctions can be derived from those of the recurrent mutation model, \ie\ from Jacobi polynomials times the stationary beta distribution (or the proportional weight function $w(x,\alpha,\theta)$), by expanding into a Taylor series in $\theta$ and keeping terms up to order zero \citep[][Appendix A.1]{Vogl16}. For this, we define the modified Gegenbauer polynomials as  $U_n(x)=\frac{2}{n}X_{n-2}(x)=x^{-1}(1-x)^{-1}G_{n-2}(x)=C_{n-2}^{(3/2)}(1-2x)$, where $X_i(x)$ are the modified Gegenbauer polynomials of \citet{Tran14b}, $G_i(x)$ the modified Gegenbauer polynomials of \citet{Song12}, and $C_{i}^{(3/2)}$ the Gegenbauer polynomials as defined in  \citep{Abra70}. We then obtain
+We start the presentation of the pure-drift model reiterating that the marginal likelihood is constant and has to be between zero and one. Assuming a pure-drift model, \citet{Tran14b} augment the eigenfunctions of the backward equation with $1$ and $x$. The two new backward eigenfunctions require augmenting the forward eigenfunctions with point masses at the boundaries that counterbalance the probability mass in the interior. Additionally, point masses at the boundaries, independent of those associated with the forward eigenfunctions, need to be introduced \citep{Tran14b}. %\todo{CV: I took out Tran's eigenfunctions and refer to them later, because ours are more general and easier to derive with the power series expansion.}
+
+Independently from \citet{Tran14b}, we derived a boundary mutation-drift model forward in time from probabilistic population genetic considerations \citep{Vogl15} with eigenfunctions proportional to those in \citet{Tran14b}. Our approach is similar to that presented in \citet{McKa07} and \citet{Waxm11}. Furthermore, we showed that the forward eigenfunctions can be derived from those of the recurrent mutation model, \ie\ from Jacobi polynomials times the stationary beta distribution (or the proportional weight function $w(x,\alpha,\theta)$), by expanding into a Taylor series in $\theta$ and keeping terms up to order zero \citep[][Appendix A.1]{Vogl16}. For this, we define the modified Gegenbauer polynomials as  $U_n(x)=\frac{2}{n}X_{n-2}(x)=x^{-1}(1-x)^{-1}G_{n-2}(x)=C_{n-2}^{(3/2)}(1-2x)$, where $X_i(x)$ are the modified Gegenbauer polynomials of \citet{Tran14b}, $G_i(x)$ the modified Gegenbauer polynomials of \citet{Song12}, and $C_{i}^{(3/2)}$ the Gegenbauer polynomials as defined in \citet{Abra70}. We then obtain\todo{CV: I checked this on 16.02.17}
 \begin{equation}\label{eq:forw_Us}
 \begin{cases}
-    H_0(x)&=\beta\delta(x)+\alpha\delta(x-1)=\lim_{\theta\to0}\pi(x,\alpha,\theta)\\
-    H_1(x)&=-\delta(x)+\delta(x-1)=\lim_{\theta\to0}w(x,\alpha,\theta)R_1^{(\alpha,\theta)}\\
-    H_{n\geq2}(x)&=-\frac{(-1)^n}n\delta(x)+U_n(x)-\frac{1}n\delta(x-1)=\lim_{\theta\to0}w(x,\alpha,\theta)R_n^{(\alpha,\theta)}\,,
+    F_0^{(\alpha,0)}(x)&=\beta\delta(x)+\alpha\delta(x-1)=\lim_{\theta\to0}\pi(x,\alpha,\theta)\\
+    F_1^{(\alpha,0)}(x)&=-\delta(x)+\delta(x-1)=\lim_{\theta\to0}w(x,\alpha,\theta)R_1^{(\alpha,\theta)}\\
+    F_{n\geq2}^{(\alpha,0)}(x)&=-\frac{(-1)^n}n\delta(x)+U_n(x)-\frac{1}n\delta(x-1)=\lim_{\theta\to0}w(x,\alpha,\theta)R_n^{(\alpha,\theta)}\,,
 \end{cases}
 \end{equation}
 where $\delta(x)$ is the Dirac delta functional. Note that eigenfunctions are only defined up to a proportionality constant. The associated eigenvalues are 
 \begin{equation}\label{eq:bound_mut_ev}
 \begin{cases}
     \lambda_0(x)&=0\\
-    \lambda_1(x)&=\theta\\
-    \lambda_{n\geq2}(x)&=n(n-1)\,,
+    \lambda_1(x)&=\lim_{\theta\to0}\theta=0\\
+    \lambda_{n\geq2}(x)&=n(n-1)\,.
 \end{cases}
 \end{equation}
 
-All $H_n(x)$ with $n\geq 1$ integrate to zero over the closed unit interval; in particular for all $n\geq2$:
+All $F_n^{(\alpha,0)}(x)$ with $n\geq 1$ integrate to zero over the closed unit interval; in particular for all $n\geq2$:
 \begin{equation}\label{eq:int_U_n}
 \begin{cases}
     \int_0^1 xU_n(x)\,dx&= \frac{1}n\\
@@ -693,26 +699,26 @@ All $H_n(x)$ with $n\geq 1$ integrate to zero over the closed unit interval; in 
 \end{equation}
 The $U_n(x)$ fulfil $-\lambda_n U_n(x)={\cal L}U_n(x)$ with eigenvalues (\ref{eq:bound_mut_ev}), for $n\geq 2$. Furthermore, the $U_n(x)$ fulfil the orthogonality relation
 \begin{equation}
-    \langle U_m(x), U_n(x) \rangle_{\pi}=\int_0^1 U_m(x) U_n(x) \pi(x)\,dx=\, \delta_{m,n} \Delta_n
+    \langle U_m(x), U_n(x) \rangle_{\pi}=\int_0^1 U_m(x) U_n(x) \pi(x)\,dx=\, \delta_{mn} \Delta_n
 \end{equation} 
 
-Similarly, the backward eigenfunctions can be derived by expanding the modified Jacobi polynomials into a Taylor series in $\theta$ and keeping terms up to order zero. These eigenfunctions are
+Similarly, the backward eigenfunctions can be derived by expanding the modified Jacobi polynomials into a Taylor series in $\theta$ and keeping terms up to order zero. These eigenfunctions are \todo{CV: I checked this on 16.02.17}
 \begin{equation}\label{eq:backw_Us}
 \begin{cases}
-    H_0^{*}(x)&=1=R_0^{(\alpha,\theta)}\\
-    H_1^{*}(x)&=x-\alpha=\frac{1}{\theta}R_1^{(\alpha,\theta)}\\
-    H_{n\geq2}^{*}(x)&=\lim_{\theta\to0}R_n^{(\alpha,\theta)}=x(1-x)U_n(x)\,.
+    B_0^{(\alpha,0)}(x)&=1=R_0^{(\alpha,\theta)}\\
+    B_1^{(\alpha,0)}(x)&=x-\alpha=\frac{1}{\theta}R_1^{(\alpha,\theta)}\\
+    B_{n\geq2}^{(\alpha,0)}(x)&=\lim_{\theta\to0}R_n^{(\alpha,\theta)}=x(1-x)U_n(x)\,.
 \end{cases}
 \end{equation}
-The corresponding eigenvalues correspond to those forward in time in eq.~(\ref{eq:bound_mut_ev}). The mutation bias $\alpha$ may obtain any value between zero and one. If $\alpha$ is set to zero, the backward eigenfunctions correspond to those of \citet{Tran14b}. 
+The eigenvalues correspond to those forward in time in eq.~(\ref{eq:bound_mut_ev}). The mutation bias $\alpha$ may obtain any value between zero and one. If $\alpha$ is set to zero, the backward eigenfunctions correspond to those of \citet{Tran14b}. 
 
-Set the forward and backward eigenfunctions to $F_n(x)=H_n(x)$ and $B_n(x)=H_n^*(x)$. The orthogonality relation is
+The orthogonality relation is \todo{CV: I changed the notation for the forward and backward eigenfunctions.}
 \begin{equation}\label{eq:ortho_rel_pure_drift}
-\int_0^1 F_m(x) B_n(x)\,dx=\Delta_n \delta_{mn}\,,
+\int_0^1 F_m^{(\alpha,0)}(x) B_n^{(\alpha,0)}(x)\,dx=\Delta_n \delta_{mn}\,,
 \end{equation}
 with $\Delta_0=\Delta_1=1$ and $\Delta_n$ as above. However, note that 
 \begin{equation}
-\int_0^1 B_m(x) B_n(x) w(x)^{-1} \,dx=\Delta_n \delta_{m,n}\,
+\int_0^1 B_m^{(\alpha,0)}(x) B_n^{(\alpha,0)}(x) w(x)^{-1} \,dx=\Delta_n \delta_{mn}\,
 \end{equation}
 only holds for pairs $m,n\geq 2$ and the pair $m=0$ and $n=1$, but not for the pairs $m=0$ (or $m=1$) and $n\geq 2$; and similarly for the forward eigenfunctions $F_n(x)$. %We can, however, use the limits in eqs.~(\ref{eq:forw_Us}) and (\ref{eq:backw_Us}) to show for all $m$ and $n$
 %\begin{equation}\label{eq:ortho_limits}
@@ -723,245 +729,316 @@ only holds for pairs $m,n\geq 2$ and the pair $m=0$ and $n=1$, but not for the p
 %\end{split}
 %\end{equation}
 
-To show that these eigenfunctions are adjoint, \ie\ fulfil
-\begin{equation}\label{eq:adjoint_pure_drift}
-\int_{0}^{1} \big[{\cal L} F_n(x)\big] B_n(x)\,dx=
-\int_{0}^{1} F_n(x) \big[{\cal L}^{*} B_n(x)\big]\,dx\,,
-\end{equation}
-consider first $n=0$ and $n=1$: note that both $F_n(x)$ and $B_n(x)$ are finite over the closed unit interval; on the left side, $x(1-x)F_n(x)=0$ and thus also $\frac{d^2}{dx^2}x(1-x)F_n(x)=0$, and on the right side $\frac{d^2}{dx^2}B_n(x)=0$. Next, for $n\geq 2$, we have $x(1-x)F_n(x)=B_n(x)$, such that
+The forward function is then set to
 \begin{equation}
-\begin{split}
-\int_{0}^{1} \big[{\cal L} F_n(x)\big] B_n(x)\,dx&=
-\int_{0}^{1} F_n(x) \big[{\cal L}^{*} B_n(x)\big]\,dx\\
-\int_{0}^{1} \bigg[\frac{d^2}{dx^2} B_n(x)\bigg] B_n(x)\,dx&=
-\int_{0}^{1} F_n(x) \bigg[ x(1-x) \frac{d^2}{dx^2} B_n(x)\bigg]\\
-\int_{0}^{1} \bigg[\frac{d^2}{dx^2} B_n(x)\bigg] B_n(x)\,dx&=
-\int_{0}^{1} B_n(x) \bigg[ \frac{d^2}{dx^2} B_n(x)\bigg]\,dx\,.
-\end{split}
+  \phi(x\given \tau,\rho)=\sum_{n=0}^\infty \rho_n e^{-\lambda(s-\tau)} F_n^{(\alpha,0)}(x)
 \end{equation}
-Obviously the augmented forward and backward eigenfunctions are adjoint over the closed unit interval. %\todo[inline]{Using limits as in eq.~(\ref{eq:ortho_limits}), we may be able to show that the forward and backward eigenfunctions are self-adjoint with respect to the function $\pi(\alpha,\theta)$. No, does not work!} 
+and the backward function to
+\begin{equation}
+\psi(\y\given x,\tau)=\sum_{m=0}^\infty c_m(\y) e^{-\lambda(\tau)} B_m^{(\alpha,0)}(x)\,.
+\end{equation} 
+The joint distribution is defined as above. We can now show that the marginal likelihood 
+\begin{equation}
+  \Pr(\y\given \rho)=\int_0^1 \phi(x\given \tau, \rho)\psi(\y\given x,\tau)\,dx
+\end{equation}
+is independent of time, \ie\  condition (\ref{eq:adjoint_continuous}) is fulfilled. When taking the derivative of the marginal likelihood with respect to time as in eq.~(\ref{eq:time_trick}), those of the eigenfunctions $n=0$ and $n=1$ are zero, because the respective eigenvalues are zero. For $n\geq 2$, the backward expansion contains only the terms $x(1-x)U_n(x)$ as does $w(x)$ times the forward expansion, $w(x)F_{n\geq2}^{(\alpha,0)}(x)=x(1-x)U_{n\geq2}(x)$. Indeed the eigenfunctions with $n\geq2$ correspond to those usually considered \citep{Kimu55,Song12}. As backward and forward functions are thus zero at both boundaries zero and one, the boundary condition~(\ref{eq:bound_pure_drift}) is met. Note that it is also straightforward to show for $n=0$ and $n=1$ condition (\ref{eq:adjoint_continuous}) holds, because the integrals on both sides are always zero.
 
-In matrix notation, set $\mathbf{Q}$ again to the diagonal matrix of eigenvalues, while  $\mathbf{F}$ and $\mathbf{B}$ are defined as the diagonal matrix with the forward and  backward eigenfunctions respectively. Then we define the column vector
-\begin{equation}
-|\psi(x,\tau)\rangle=\mathbf{Q}(0-\tau)\mathbf{B}(x)\mathbf{C}\oneC
-\end{equation}
-and the row vector
-\begin{equation}
-\langle\phi(x,\tau)|=\bs{\rho}\mathbf{F}\mathbf{Q}(\tau-s)(x)\,.
-\end{equation}
-Joint, marginal, and conditional frequencies can be calculated as above. 
+%\todo[inline]{CV: I do not think that the below is necessary. What do you think?}
+%From the orthogonality relation~(\ref{eq:ortho_rel_pure_drift}) it follows that non-zero terms are possible only for equal indices $m=n$. Thus we need to show  
+%\begin{equation}\label{eq:adjoint_pure_drift}
+%\int_{0}^{1} \big[{\cal L} F_n(x)\big] B_n(x)\,dx=
+%\int_{0}^{1} F_n(x) \big[{\cal L}^{*} B_n(x)\big]\,dx\,.
+%\end{equation}
+%For $n\geq 2$, we have $x(1-x)F_n(x)=B_n(x)$, such that
+%\begin{equation}
+%\begin{split}
+%\int_{0}^{1} \big[{\cal L} F_n(x)\big] B_n(x)\,dx&=
+%\int_{0}^{1} F_n(x) \big[{\cal L}^{*} B_n(x)\big]\,dx\\
+%\int_{0}^{1} \bigg[\frac{d^2}{dx^2} B_n(x)\bigg] B_n(x)\,dx&=
+%\int_{0}^{1} F_n(x) \bigg[ x(1-x) \frac{d^2}{dx^2} B_n(x)\bigg]\,dx\\
+%\int_{0}^{1} \bigg[\frac{d^2}{dx^2} B_n(x)\bigg] B_n(x)\,dx&=
+%\int_{0}^{1} B_n(x) \bigg[ \frac{d^2}{dx^2} B_n(x)\bigg]\,dx\,.
+%\end{split}
+%\end{equation}
+
+\todo[inline]{The Poet: When popgen went to function land (Let my people in); confused so much their head would spin (Let my people in); Go down, Clausi, way down in function land, tell old D \& J to lend a helping hand}
 
 \subsection{Boundary mutation-drift model}
 
-Even though the eigenfunctions are taken to be of zeroth order in $\theta$, the boundary mutation model approximates the recurrent mutation model to first order in $\theta$. In equilibrium, the distribution of a sample of moderate size $M$ from the boundary mutation model is identical to the expansion to first order in $\theta$ of the beta-binomial, \ie\ the sampling distribution of the recurrent mutation model in equilibrium \citep{Vogl14b}. The eigenvalue of the eigenfunction with $n=1$ is $\lambda_1=\theta$, as with the recurrent mutation model, while mutation within the polymorphic region between $\delta x \leq x \leq (1-\delta x)$ is ignored, such that all eigenvalues with $n\geq 2$ correspond to the pure drift case (\ref{eq:bound_mut_ev}). Forward in time, dynamics can be split into the slow dynamics at the boundaries and the fast dynamics in the interior. 
+In equilibrium, the marginal likelihood of a sample of moderate size $M$ assuming the recurrent mutation-drift model is beta-binomially distributed. The Taylor series expansion in the scaled mutation rate $\theta$ of the beta-binomial is identical to the marginal likelihood of the boundary mutation drift model \citep{Vogl14b}. Expanding the (improper) equilibrium distribution into the forward eigenfunctions~(\ref{eq:forw_Us}) gives the same result \citep{Vogl15}, although the eigenfunctions are taken to be of zeroth order in $\theta$. We may thus think of the boundary mutation-drift model as a first order expansion in the scaled mutation rate $\theta$ of the recurrent mutation-drift model.
 
-Note that, with the discrete boundary mutation model, the mutation rate can be scaled, such that the expected heterozygosity in a sample of size two is $\theta$ (compare the term $\mu/(1-\theta\sum_{i=1}^{N-1}\frac{1}{i})$ in formula~(\ref{eq:boundary_mutation})). With the transition to continuous diffusion, $N\to\infty$ and thus $\theta\sum_{i=1}^{N-1}\frac{1}{i}$ will grow logarithmically without bound. Mutations are therefore modeled from the boundary zero at a rate $\alpha\theta b_0(\tau)$, where $\alpha\theta$ is the mutation rate towards allele one and $b_0(\tau)$ corresponds to the probability mass already at boundary zero plus the probability mass to arrive quickly by drift, and similarly at the boundary one. The system is thus not in detailed balance and therefore not reversible.
+With the recurrent mutation-drift model, the eigenvalue of the eigenfunction with $n=1$ is $\lambda_1=\theta$. With the boundary mutation drift model, we also set $\lambda_1=\theta$, while mutation within the polymorphic region between $\delta x \leq x \leq (1-\delta x)$ is ignored, such that all eigenvalues with $n\geq 2$ are the same as with the pure drift case (\ref{eq:bound_mut_ev}). Forward in time, dynamics can be split into the slow dynamics at the boundaries (the mutational forces) and the fast dynamics in the interior (the drift forces). 
 
-With pure drift, the temporal parts of the eigenfunctions $T_n(\tau)$, with $n\geq 2$ fulfill homogeneous differential equations, \ie\ are decreasing exponentially from starting values at rates $\lambda_n=n(n-1)$, while the first two eigenfunctions with $n=0$ and $n=1$ do not change with time. With mutations from the boundaries and forward in time, \citet{Vogl16} use the same eigenfunctions as with pure drift to model the spatial part of the eigensystem. The temporal part then results in a system of linear differential equations, with homogeneous linear differential equations for the slow functions with $n=0$ and $n=1$ with $\lambda_0=0$ and $\lambda_1=\theta$. The temporal part of the fast-changing augmented eigenfunctions with $n\geq 2$ and $\lambda_n=n(n-1)$ is described by inhomogeneous linear differential equations. The differential equations for the $T_n(x)$ are
+Note that, with the discrete boundary mutation model, we scaled the mutation rate, such that independent of the population size $N$ the heterozygosity in a sample of size two is $\theta$ for the model with mutations from one boundary (compare the term $\mu/(1-\theta\sum_{i=1}^{N-1}\frac{1}{i})$ in formula~(\ref{eq:boundary_mutation})) or $2\alpha\beta\theta$ for the model with mutations from both boundaries. With the transition to continuous diffusion, $N\to\infty$ and thus $\theta\sum_{i=1}^{N-1}\frac{1}{i}$ will grow logarithmically without bound. Mutations are therefore modeled from the boundary zero at a rate $\alpha\theta b_0(\tau)$, where $\alpha\theta$ is the mutation rate towards allele one and $b_0(\tau)$ corresponds to the probability mass already at boundary zero plus the probability mass to arrive quickly by drift, and similarly at the boundary one. The system is thus not in detailed balance and therefore not reversible.
+
+\paragraph{Forward expansion} 
+With mutations from the boundaries and forward in time, \citet{Vogl16} use the same augmented forward eigenfunctions as with pure drift (\ref{eq:forw_Us}) to model the spatial part of the eigensystem. With pure drift, the temporal parts of the eigenfunctions $T_n(\tau)$, with $n\geq 2$ fulfill homogeneous differential equations, \ie\ are decreasing exponentially from starting values at rates $\lambda_n=n(n-1)$, while the first two eigenfunctions with $n=0$ and $n=1$ do not change with time. With the boundary mutation model, the temporal part $T_n(\tau)$ corresponds to a system of linear differential equations: homogeneous for $n=0$ and $n=1$ with eigenvalues $\lambda_0=0$ and $\lambda_1=\theta$, and inhomogenous for $n\geq 2$ with eigenvalues $\lambda_n=n(n-1)$:\todo{CV; notation: $B_n$ is already the backward eigenfunction. Change to $E_n$ for even and $O_n$ for odd.}
 \begin{equation}\label{eq:forward_inhomogenous}
 \begin{cases}
   \frac{d}{d\tau} T_0(\tau)&= 0\\
   \frac{d}{d\tau} T_1(\tau)&= -\theta T_1(\tau)\\
-  \frac{d}{d\tau} T_{n\geq2}(\tau)&= -\lambda_n T_n(\tau)+\vartheta A_n T_0(\tau)+\theta B_n T_1(\tau)\,,\\
+  \frac{d}{d\tau} T_{n}(\tau)&= -\lambda_n T_n(\tau)+\vartheta E_n T_0(\tau)+\theta O_n T_1(\tau)\qquad\text{for $n\geq 2$}\,.\\
 \end{cases}
 \end{equation}
-with
+with 
 \begin{equation}
 \begin{split}
-    \vartheta&=\alpha\beta\theta\,,\\
-    A_n&=-(n-1)\frac{((-1)^n+1)}{\Delta_n}\,,\\
-    B_n&=-(n-1)\frac{(-1)^n\alpha-\beta}{\Delta_n}\,.
+    \vartheta&=\alpha\beta\theta\,\\
+    E_n&=-(n-1)\frac{((-1)^n+1)}{\Delta_n}\,,\\
+    O_n&=-(n-1)\frac{(-1)^n\alpha-\beta}{\Delta_n}\,.
 \end{split}
 \end{equation}
-In Appendix~(\ref{section:backward_derivation}), we derive a system of inhomogenous differential equations for the backward system similar to~\eqref{eq:forward_inhomogenous} from population genetic considerations for the corresponding backward eigenfunctions. 
-
-We note that the forward system can be diagonalized by setting 
+%\todo{CV: We could leave away the next sentence and the corresponding appendices?}
+%In Appendix~(\ref{section:backward_derivation}), we derive a system of inhomogenous differential equations for the backward system similar to~\eqref{eq:forward_inhomogenous} from population genetic considerations for the corresponding backward eigenfunctions. 
+The forward system for $\theta>0$ can be diagonalized by setting 
 %\todo{Watch out for signs!}
 \begin{equation}\label{eq:forw_bound_diag}
 \begin{cases}
-    F_0(x)&=H_0(x)+\vartheta \sum_{n=2}^\infty \frac{A_n}{\lambda_n}H_n(x)\\
-    F_1(x)&=H_1(x)+\theta \sum_{n=2}^\infty \frac{B_n}{\lambda_n} H_n(x)\\
-    F_{n\geq2}(x)&=H_n(x)\,.
+    F_0^{(\alpha,\theta)}(x)&=F_0^{(\alpha,0)}(x)+\vartheta \sum_{n=2}^\infty \frac{E_n}{\lambda_n}F_n^{(\alpha,0)}(x)\\
+    F_1^{(\alpha,\theta)}(x)&=F_1^{(\alpha,0)}(x)+\theta \sum_{n=2}^\infty \frac{O_n}{\lambda_n} F_n^{(\alpha,0)}(x)\\
+    F_{n}^{(\alpha,\theta)}(x)&=F_n^{(\alpha,0)}(x)\qquad\text{for $n\geq 2$}\,.
 \end{cases}
 \end{equation}
-The temporal parts of the system are then $\frac{d}{d\tau} T_n(\tau)= -\lambda_n T_n(\tau)$ for all $n$. With increasing $n$, the stationary distribution converges to the following function \citep{Vogl15,Vogl16}
+The temporal parts of the system are then $\frac{d}{d\tau} T_n(\tau)= -\lambda_n T_n(\tau)$ for all $n$. With increasing $N$, the stationary distribution converges to the following function \citep{Vogl15,Vogl16}
 \begin{align}\label{eq:forw_bounddrift-stat}
-  \pi(x, \alpha, \theta) = \lim_{N\to\infty}
+  \pi(x, \alpha, \theta) = F_0^{(\alpha,\theta>0)}(x)=\lim_{N\to\infty}
   \begin{cases}
     \beta-\vartheta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1x\,dx     & \text{if } 0 \leq x < 1/N         \\
     \vartheta\frac{1}{x(1-x)}                                                 & \text{if } 1/N \le x \le 1-1/N \\
     \alpha-\vartheta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1{1-x}\,dx  & \text{if } 1-1/N < x \leq 1 \,.      \\
 \end{cases}
 \end{align}
-This function integrates to unity, but has singularities at the boundaries. 
-\paragraph{Singularities at the boundaries} In fact, these singularities make it difficult to interpret  $\pi(x,\alpha,\theta)$ probabilistically. But note that moments about zero up to an order $M_{max}$ may be defined meaningfully, by multiplying $\pi(x,\alpha,\theta)$ with $x^m$ and integrating. We have
+This function integrates to unity, but has singularities at the boundaries, which make it difficult to interpret probabilistically. Moments about zero up to an order $m=M_{\max}$ may be defined meaningfully, by multiplying $\pi(x,\alpha,\theta)$ with $x^m$ and integrating. We have
 \begin{equation}
 \begin{split}
     \int_0^1 \pi(x) x^m \, dx&= \alpha -\vartheta\int_0^1 \frac{1-x^{m-1}}{1-x}\,dx\\
     &=\alpha-\vartheta H_{m-1}\,,
 \end{split}
 \end{equation}
-where $H_{m-1}$ is the harmonic number. As this same relationship must also hold for the moments about one, $\min(\alpha,\beta)/\vartheta< H_{m-1}$, which leads to $M_{max}\approx e^{min(\alpha,\beta)/\vartheta}$.
-Note that a monomorphic sample of a binomial with sample size $M$ leads to terms $x^M$ or $(1-x)^M$, which corresponds to the moments about zero and one. Thus the sample size $M_{max}$ needs to be restricted to $M_{max}\approx e^{min(\alpha,\beta)/\vartheta}$ to avoid negative values. Since the boundary mutation model generally requires $\theta<0.1$ \citep{Vogl15}, this boundary on $M$ may be larger than the effective population size $N$ and thus not pose practical problems. 
+where $H_{m-1}$ is the harmonic number. As this same relationship must also hold for the moments about boundary one, $\min(\alpha,\beta)/\vartheta< H_{m-1}$, which leads to $M_{\max}\approx e^{\min(\alpha,\beta)/\vartheta}$. Note that a monomorphic sample of a binomial with sample size $M$ leads to terms $x^M$ or $(1-x)^M$, which corresponds to the moments about zero and one. Thus the sample size $M_{\max}$ needs to be restricted to $M_{\max}\approx e^{\min(\alpha,\beta)/\vartheta}$ to avoid negative values. Since the boundary mutation model generally requires $\theta<0.1$ \citep{Vogl15}, this boundary on $M$ may be larger than the effective population size $N$ and thus does not pose practical problems. 
 
-Note that the same problem occurs with the closely related Ewens-Watterson estimator $\hat \theta_W$ of molecular diversity. With the assumptions used for deriving $\hat \theta_W$, the probability of obtaining a monomorphic sample of size $M$ is $1-\theta\sum_{i=1}^{M-1} \frac{1}{i}$. It is therefore necessary to restrict the sample size to about $M<e^\theta$. 
+Note that the same problem occurs with the closely related Ewens-Watterson estimator $\hat \theta_W$ of molecular diversity. With the assumptions used for deriving $\hat \theta_W$, the probability of obtaining a monomorphic sample of size $M$ is $1-\theta\sum_{i=1}^{M-1} \frac{1}{i}$. It is therefore necessary to restrict the sample size to $M_{\max}\approx e^{1/\theta}$. 
 
-\paragraph{Backward expansion} The backward system can also be diagonalized by setting
+\paragraph{Backward expansion} The backward system of differential equations with eigenfunctions $B_n^{(\alpha,0)}(x)$ is the transpose of the forward system~(\ref{eq:forward_inhomogenous}). It can also be diagonalized by setting
 \begin{equation}\label{eq:backw_bound_diag}
 \begin{cases}
-    B_0(x)&=H_0^{*}(x)=1\\
-    B_1(x)&=H_1^{*}(x)=x-\alpha\\
-    %B_n(x)&=B_n(x)-\vartheta \sum_{n=2}^\infty\frac{A_n\Delta_n}{\lambda_n} H_0^{*}(x)-\theta\sum_{n=2}^\infty \frac{B_n\Delta_n}{\lambda_n} H_1^{*}(x)\qquad\text{for $n\geq 2$}\,.
-    B_n(x)&=H_n^{*}(x)-\vartheta \frac{A_n\Delta_n}{\lambda_n} H_0^{*}(x)-\theta \frac{B_n\Delta_n}{\lambda_n} H_1^{*}(x)\qquad\text{for $n\geq 2$}\,.
+    B_0^{(\alpha,\theta)}(x)&=B_0^{(\alpha,0)}(x)=1\\
+    B_1^{(\alpha,\theta)}(x)&=B_1^{(\alpha,0)}(x)=x-\alpha\\
+    B_n^{(\alpha,\theta)}(x)&=B_n^{(\alpha,0)}(x)-\vartheta \frac{E_n\Delta_n}{\lambda_n} B_0^{(\alpha,0)}(x)-\theta \frac{B_n\Delta_n}{\lambda_n} B_1^{(\alpha,0)}(x)\qquad\text{for $n\geq 2$}\,.
 \end{cases}
 \end{equation}
 
-It can be verified that the forward and backward eigenfunctions $F_n(x)$ and $B_n(x)$ in formulas~(\ref{eq:forw_bound_diag}) and (\ref{eq:backw_bound_diag}) fulfil the orthogonality relation~(\ref{eq:ortho_rel_pure_drift}) with $\Delta_0=\Delta_1=1$ and $\Delta_n=\frac{n-1}{(2n-1)n}$ for $n\geq 2$. 
+It can be verified that the forward and backward eigenfunctions $F_n^{(\alpha,\theta)}(x)$ and $B_n^{(\alpha,\theta)}(x)$ in formulas~(\ref{eq:forw_bound_diag}) and (\ref{eq:backw_bound_diag}) fulfil the orthogonality relation~(\ref{eq:ortho_rel_pure_drift}) with $\Delta_0=\Delta_1=1$ and $\Delta_n=\frac{n-1}{(2n-1)n}$ for $n\geq 2$. 
 In particular, for $m=0$ and $n\geq 2$, we have
 \begin{equation}
 \begin{split}
-    %\int_0^1 F_0(x)B_n(x)\,dx&=\int_0^1 \bigg(H_0(x)+\vartheta \sum_{n=2}^\infty\frac{A_n}{\lambda_n} H_n(x)\bigg)\\
-    %&\qquad \times \bigg(H_n^{*}(x)-\vartheta \sum_{n=2}^\infty\frac{A_n\Delta_n}{\lambda_n} H_0(x)-\theta \sum_{n=2}^\infty\frac{B_n\Delta_n}{\lambda_n} H_1(x)\bigg)\,dx\\
-    %&=0+\vartheta \sum_{n=2}^\infty\frac{A_n}{\lambda_n} \Delta_n-\vartheta \sum_{n=2}^\infty\ \frac{A_n\Delta_n}{\lambda_n} \Delta_0=0\,,
-    \int_0^1 F_0(x)B_n(x)\,dx&=\int_0^1 \bigg(H_0(x)+\vartheta \sum_{n=2}^\infty\frac{A_n}{\lambda_n} H_n(x)\bigg)\\
-    &\qquad \times \bigg(H_n^{*}(x)-\vartheta \frac{A_n\Delta_n}{\lambda_n} H_0(x)-\theta \frac{B_n\Delta_n}{\lambda_n} H_1(x)\bigg)\,dx\\
-    &=0+\vartheta \frac{A_n}{\lambda_n} \Delta_n-\vartheta  \frac{A_n\Delta_n}{\lambda_n} \Delta_0=0\,,
+    &\int_0^1 F_0^{(\alpha,\theta)}(x)B_n^{(\alpha,\theta)}(x)\,dx=\int_0^1 \bigg(F_0^{(\alpha,0)}(x)+\vartheta \sum_{n=2}^\infty\frac{E_n}{\lambda_n} F_n^{(\alpha,\theta=0)}(x)\bigg)\\
+    &\qquad\qquad\times \bigg(B_n^{(\alpha,0)}(x)-\vartheta \frac{E_n\Delta_n}{\lambda_n} B_0^{(\alpha,0)}(x)-\theta \frac{O_n\Delta_n}{\lambda_n} B_1^{(\alpha,0)}(x)\bigg)\,dx\\
+    &\qquad\qquad=0+\vartheta \frac{E_n}{\lambda_n} \Delta_n-\vartheta  \frac{E_n\Delta_n}{\lambda_n} \Delta_0=0\,,
 \end{split}
 \end{equation}
 and similarly for $m=1$ and $n\geq 2$. 
 
-With these definitions, we have as before
+With these definitions, we have, as before, the forward function:
 \begin{equation}
-\langle\phi(x,\tau)|=\bs{\rho}\mathbf{Q}(\tau-s)\mathbf{F}(x)\,.
+  \phi(x\given \tau,\rho)=\sum_{n=0}^\infty \rho_n e^{-\lambda(s-\tau)} F_n(x)\,,
 \end{equation}
-and
-\begin{equation}\label{eq:backw_bound_drift_mat}
-|\psi(x,\tau)\rangle=\mathbf{B}(x)\mathbf{Q}(\tau-s)\mathbf{C}\oneC\,.
+the backward function:
+\begin{equation}
+\psi(\y\given x,\tau)=\sum_{m=0}^\infty c_m(\y) e^{-\lambda(\tau)} B_m(x)\,,
+\end{equation} 
+and the marginal likelihood: 
+\begin{equation}
+  \Pr(\y\given \rho)=\int_0^1 \phi(x\given \tau, \rho)\psi(\y\given x,\tau)\,dx\,.
 \end{equation}
-
-Generally, the forward function cannot be interpreted probabilistically on its own because it attains negative values at the boundaries. In contrast, the backward function and the marginal distribution can be interpreted as with the recurrent mutation model. As the forward function cannot be interpreted on its own, expanding it beyond the sample size $M$ has little meaning due to the orthogonality relation. We thus assume that the maximum expansion $M$ corresponds to $M_b$. As discussed above with the stationary distribution, the sample size $M_{max}$ needs to be restricted to $M_{max}\approx e^{min(\alpha,\beta)/\vartheta}$ to avoid negative values. Since the boundary mutation model generally requires $\theta<0.1$ \citep{Vogl15}, this boundary on $M$ may be larger than the effective population size $N$ and thus not pose practical problems. 
+The backward function and the marginal distribution, as long as $M<M_{\max}\approx e^{\min(\alpha,\beta)/\vartheta}$, can be interpreted probabilistically as with the recurrent mutation-drift or the pure drift model. As the forward function may attain negative values, expanding it beyond the sample size $M$ has little meaning.  
 
 \subsubsection{Example: one change in the mutation parameters}
 
-For computational reasons, we present the version of the boundary mutation model with inhomogeneous linear differential equations. Assume a population in stationarity at $\tau=s$ with mutation parameters $\theta_a$ and $\alpha_a$ that change, at time $\tau=s$, to $\theta$ and $\alpha$, respectively, and remain constant thereafter. 
-Expanding the stationary distribution at time $\tau=s$ into the forward eigenfunctions $H_n(x)$ results in
-\todo[]{CV: Notation may be improved!}
+We present the version of the boundary mutation model with the inhomogeneous linear differential equations, \ie\ with the eigenfunctions $F_0^{(\alpha,0)}$ and $B_n^{(\alpha,0)}$. With this choice, a change in the effective population size (population demography), or equivalently in the scaled mutation rate does not necessitate a change in the base. Assume a population in equilibrium at $\tau=s$ with mutation parameters $\theta_a$ and $\alpha_a$, such that the initial distribution is $\rho(x)=\pi(x\given\theta_a,\alpha_a)$. The scaled mutation parameters then changes immediately to $\theta$ and $\alpha$, respectively, and remain constant thereafter. 
+Expanding the stationary distribution at time $\tau=s$ into the forward eigenfunctions $F_n^{(\alpha,0)}(x)$ results in
+\todo[]{CV: Notation changed.}
 \begin{equation}
 \begin{split}
-    \phi(x,\tau)&= H_0(x)+(\alpha_a-\alpha) e^{-\theta \tau}\,H_1(x)+\sum_{n=2}^\infty \bigg(A_n(\vartheta+(\vartheta_a-\vartheta) e^{-n(n-1)(s-\tau})\\
-    &\qquad+(\alpha_a-\alpha) \theta H_n (e^{-\theta (s-\tau)}-e^{-n(n-1) (s-\tau)})\bigg)\,H_n(x)\,.
+    \phi(x\given\tau)&= F_0^{(\alpha,0)}(x)+(\alpha_a-\alpha) e^{-\theta \tau}\,F_1^{(\alpha,0)}(x)\\
+    &\qquad+\sum_{n=2}^\infty \bigg(E_n(\vartheta+(\vartheta_a-\vartheta) e^{-\lambda_n(s-\tau})\\
+    &\qquad
+    +(\alpha_a-\alpha) \theta O_n (e^{-\theta (s-\tau)}-e^{-\lambda_n (s-\tau)})\bigg)\,F_n^{(\alpha,0)}(x)\,.
 \end{split}
 \end{equation}
 With a sample of size $M$ with $y$ alleles of the first type at time $\tau=0$, the binomial likelihood can be expanded into the backward eigenfunctions with 
 \begin{equation}
-    \psi(x,\tau=0)=\sum_{n=0}^M a_n^{*} H_n^{*}(x)
+    \psi(\y\given x,\tau=0)=\sum_{n=0}^M c_n(y) B_n^{(\alpha,0)}(x)
 \end{equation}
-The marginal likelihood at time $\tau=0$ is
+The marginal likelihood, calculated at time $\tau=0$, is
 \begin{equation}
 \begin{split}
-    &\Pr(y,\tau=0)=\int_0^1 \phi(x,\tau=0)\psi(x,\tau=0)\,dx\\
-    &\quad=\bigg[a_0^{*}\cdot 1\bigg]+\bigg[a_1^{*}(\alpha_a-\alpha) e^{-\theta s}\cdot 1\bigg]+\bigg[\sum_{n=2}^M a_n^{*}\bigg(A_n(\vartheta+(\vartheta_a-\vartheta) e^{-n(n-1)s}) \\
-    &\quad\qquad+(\alpha_a-\alpha)\theta B_n (e^{-\theta s}-e^{-n(n-1) s})\bigg)\cdot\Delta_n\bigg]\,,\
+    &\Pr(\y)=\int_0^1 \phi(x\given\tau=0)\psi(\y\given \tau=0)\,dx=\bigg[c_0(\y)\cdot 1\bigg]+\bigg[c_1(\y)(\alpha_a-\alpha) e^{-\theta s}\cdot 1\bigg]\\
+    &\qquad\quad+\bigg[\sum_{n=2}^M c_n(\y)\bigg(E_n(\vartheta+(\vartheta_a-\vartheta) e^{-n(n-1)s}) \\
+    &\quad\qquad\qquad+(\alpha_a-\alpha)\theta O_n (e^{-\theta s}-e^{-n(n-1) s})\bigg)\cdot\Delta_n\bigg]\,,\
 \end{split}
 \end{equation}
-where the terms in the successive square brackets come from the terms in the expansion with $n=0$, $n=1$, and $2\leq n\leq M$, respectively, while all terms with $n>M$ are zero. Within the square brackets, the terms before the dot are the time-dependent functions of the forward expansion. The same marginal likelihood is also obtained by using the backward eigenfunctions $H_n^{*}$, multiplying with the stationary distribution at $\tau=s$, and integrating:
+where the terms in the successive square brackets come from the terms in the expansion with $n=0$, $n=1$, and $2\leq n\leq M$, respectively, while all terms with $n>M$ are zero. Within the square brackets, the terms before the dot are the time-dependent functions of the forward expansion. The same marginal likelihood is also obtained by using the backward eigenfunctions $B_n^{(\alpha,0)}$, multiplying with the stationary distribution at $\tau=s$, and integrating:
 \begin{equation}
 \begin{split}
-    &\Pr(y,\tau=s)=\int_0^1 \psi(x,\tau=s)\pi(x,\alpha_a,\theta_a)\,dx\\
-    &\quad=\bigg[\bigg(a_0^{*}+\vartheta\sum_{n=2}^M a_n^{*}A_n\Delta_n  (1-e^{-n(n-1)s})\bigg)\cdot 1\bigg]\\ &\quad\qquad+\bigg[\bigg(a_1^{*} e^{-\theta s}+\theta\sum_{n=2}^M a_n^{*}B_n\Delta_n(e^{-\theta s}- e^{-n(n-1)s})\bigg)\cdot (\alpha_a-\alpha)\bigg]\\
-    &\quad\qquad+\bigg[\sum_{n=2}^M a_n^{*} e^{-n(n-1)s}\cdot \vartheta_a A_n\Delta_n\bigg]\,,
+    &\Pr(\y)=\int_0^1 \psi(\y\given \tau=s)\pi(x,\alpha_a,\theta_a)\,dx\\
+    &\quad=\bigg[\bigg(c_0(\y)+\vartheta\sum_{n=2}^M c_n(\y)E_n\Delta_n  (1-e^{-n(n-1)s})\bigg)\cdot 1\bigg]\\ &\quad\qquad+\bigg[\bigg(c_1(\y) e^{-\theta s}+\theta\sum_{n=2}^M c_n(\y)E_n\Delta_n(e^{-\theta s}- e^{-n(n-1)s})\bigg)\cdot (\alpha_a-\alpha)\cdot 1\bigg]\\
+    &\quad\qquad+\bigg[\sum_{n=2}^M c_n(\y) e^{-n(n-1)s}\cdot \vartheta_a E_n\Delta_n\bigg]\,.
 \end{split}
 \end{equation}
-where the terms in the successive square brackets come from the terms in the expansion with $n=0$, $n=1$, and $2\leq n\leq M$, respectively, while all terms with $n>M$ are zero. Within the square brackets, the terms before the dot are the time-dependent functions of the backward expansion. Note that the term $(\alpha-\alpha_a)$ in the second square bracket comes from the change in the forward function $H_1(x)$ at $\tau=s$  due to the change in the mutation bias. 
+Within the square brackets, the terms before the dot are the time-dependent functions of the backward expansion. The two different versions of the marginal likelihoods evaluated at $\tau=0$ and $\tau=s$ are identical.
+
+%Note that the term $(\alpha-\alpha_a)$ in the second square bracket comes from the change in the forward function $F_1^{(\alpha,0)}(x)$ at $\tau=s$  due to the change in the mutation bias. 
+
+
+\paragraph{Summary,boundary mutation-drift diffusion.} Assuming a biallelic boundary mutation-drift model, a system of orthogonal eigenfunctions is defined. As with Jacobi polynomials for the recurrent mutation drift model, these functions provide a convenient base for calculations. While some mathematical inconvenience compared to the modified Jacobi polynomials is encountered, changes in (effective) population size are easily accommodated, because the base need not be changed. As with the recurrent mutation model, efficiency is increased compared to the discrete models since only eigenfunction expansions up to order $M$ instead of $N$ are needed.
 
 \section{Discussion}
 
-In this article, we use forward and backward processes in discrete or continuous time to conveniently calculate probabilities of population allele frequencies of a bi-allelic locus, conditional on data from the present. This may be used to infer trajectories of population allele frequencies in the past conditional on a sample, \ie\ a site frequency spectrum or SFS, from the present, or to calculate the marginal likelihood of a joint SFS of populations splitting some time $s$ in the past. In discrete time, the algorithm is a variant of the forward-backward algorithm and thus makes use of dynamic programming. In continuous time, orthogonal polynomials allow for even more convenient calculation. Furthermore, we introduce bi-allelic population genetic models with mutations only from the boundaries that provide us with time-reversible and irreversible transition matrices or kernels. The irreversible models are related to the infinite site \citep{Kimu69,Evan07} or Poisson-random-field models \citep{Sawy92} and have stationary distributions.
+Starting from bi-allelic mutation-drift models, we use forward and backward processes in discrete or continuous time to conveniently calculate probabilities of population allelic proportions of a locus. Conditional on a sample from a single population, \ie\ a SFS, or from more than one population, \ie\ a jSFS, from the present, this may be used to infer trajectories of population allele frequencies in the past. Integrating out the population allelic proportion, the marginal likelihood may be used to infer population genetic parameters. The discrete time algorithm is a variant of the forward-backward algorithm and thus makes use of dynamic programming. The continuous time algorithm uses orthogonal polynomials for even more convenient calculation. Furthermore, we introduce bi-allelic population genetic models with mutations only from the boundaries that provide us with time-reversible and irreversible transition matrices or kernels. The irreversible models are related to the infinite site \citep{Kimu69,Evan07} or Poisson-random-field models \citep{Sawy92}. Both reversible and irreversible models have stationary distributions.
 
-The discrete models involve repeated multiplications with a transition matrix of dimension $(N+1)\times(N+1)$, where $N$ is the haploid population size. For biological reasons, $N$ should be taken large to model the large (effective) population sizes usually encountered. For numerical reasons $N$ should be small, however, because iteration of large matrices is time-consuming and numerical errors may accumulate. Mutation rates can be scaled to account for a reduction of $N$. Transition matrices may be diagonalized to speed up calculations. In any case, $N$ must be at least as big as the sample size $M$ to not lose information. A prior distribution must be assumed at some time in the past. If this distribution is taken as the stationary distribution of the transition matrix, calculations simplify. At present, a sample of size $M$ is given and a likelihood is assumed, \ie\ the probability distribution of a sample given the distribution of population allele frequencies $\x{0}$.
+The discrete models involve repeated multiplications with a transition matrix of dimension $(N+1)\times(N+1)$, where $N$ is the haploid population size. For biological reasons, $N$ should be taken large to model the large (effective) population sizes usually encountered. For numerical reasons $N$ should be small, however, because iteration of large matrices is time-consuming and numerical errors may accumulate. Mutation rates can be scaled to account for a reduction of $N$. Transition matrices may be diagonalized to speed up calculations. In any case, $N$ must be at least as big as the sample size $M$ to not lose information. A prior distribution must be assumed at some time in the past. If this distribution is taken as the stationary distribution of the transition matrix, calculations simplify. At the present time, a probability model of the sampling process, \ie\  a likelihood, is assumed that is conditional on the sample size $M$.
 
 \citet{Zhao14} present a method that is also based on the iteration of a transition matrix (assuming the Wright-Fisher model) and allows for conditioning on the beginning and end states of the chain. They derive the marginal distribution of states intermediate in the chain and simulate trajectories. Extending this method to distributions instead of states (in our case, the prior at the beginning and the likelihood at the end of the chain) requires additional considerations and diagonalizing the transition matrix seems necessary in all but the simplest cases. 
 
-With continuous diffusion models, the use of orthogonal polynomials is convenient. The degree of the polynomials need not be higher than the sample size $M$, while the population size is assumed to converge to infinity, which fits the biological assumptions. Thus, this approach is numerically and biologically preferable. 
+With continuous diffusion models, the use of orthogonal polynomials is convenient. The degree of the polynomials need not be higher than the sample size $M$, while the population size is large, which usually fits the biological reality. Thus, the diffusion approach is numerically and biologically preferable over the discrete approach. We apply the models to infer the distribution of population allelic proportions backwards in time conditional on a SFS from the present. While some of the models use time-reversible Markov chains, this assumption is not necessary.% and numerical advantages of time-reversibility are only slight.
 
-We apply the models to infer the distribution of population allelic proportions backwards in time conditional on a SFS from the present. While some of the models use time-reversible Markov chains, this assumption is not necessary.% and numerical advantages of time-reversibility are only slight.
+Song and colleagues \citep{Song12,Stei13,Stei14,Zivk15} analyse self-adjoint continuous models generally with a Dirac delta function as a starting condition, instead of a prior distribution at $\tau=s$ and binomial sampling at $\tau=0$ (see Appendix~\ref{section:Greens_function}). Their assumptions require infinite series of polynomials to represent the starting Dirac delta function, instead of only up to the order of the sample size $M$, as with our assumptions. But as these authors also consider selection, eigenfunctions with infinite expansions are necessary in any case. A problem with their approach for pure-drift models, however, is the restriction on the boundaries, which allows only polymorphic samples to be analyzed (see the subsection~\ref{section:pure_drift}).
 
-Song and colleagues \citep{Song12,Stei13,Stei14,Zivk15} analyse self-adjoint continuous models generally with a Dirac delta function as a starting condition, instead of a prior distribution at $\tau=s$ and a likelihood at $\tau=0$ (see Appendix~A.1). Their assumptions require infinite series of polynomials to represent the starting Dirac delta function, instead of only up to the order of the sample size $M$, as with our assumptions. But since these authors also consider selection, which leads to eigenfunctions with infinite expansions on its own, this inconvenience is irrelevant. A problem with their approach for pure-drift models, however, is the restriction on the boundaries, which allows only polymorphic samples to be analyzed (see the subsection~\ref{section:pure_drift}).
-
-We note that an analysis involving iteration of moments \citep{Evan07,Zivk11} also provides a solution with similar initial conditions forward and backward in time. The model analyzed by these authors is the continuous version of the  boundary-mutation model presented here, where ancestral and derived alleles are differentiated. %(subsection~\ref{section:irreversible_diffusion})
+We note that an analysis involving iteration of moments \citep{Evan07,Zivk11} also provides a solution with similar initial conditions forward and backward in time. The model analyzed by these authors is the continuous version of the single-boundary mutation-drift model presented here, where ancestral and derived alleles are differentiated. %(subsection~\ref{section:irreversible_diffusion})
 \citet{Zivk11} also discuss relations of that model to coalescence theory.
 
-Interestingly, \citet{Zhao13} also present an approach involving diffusion to calculate conditional trajectories that involves the product of solutions of the forward and backward equation. As with Song and colleagues, they consider a Dirac delta function as starting state and, additionally, also as a final state. Usually in population genetics, however, only a sample from the present is given, while the starting conditions are even less well defined. Applying this approach to real data thus requires integration over possible start and end states, which adds another layer of complexity avoided with our approach. 
+Interestingly, \citet{Zhao13} also present a diffusion approach to calculate conditional trajectories that involves the product of solutions of the forward and backward equation. As with Song and colleagues, they consider a Dirac delta function as starting state and, additionally, also as a final state. Usually in population genetics, however, only a sample from the present is given, while the starting conditions are even less well defined. Applying this approach to real data thus requires integration over possible start and end states, which adds another layer of complexity avoided with our approach. 
 
-The demographic scenarios presented here (Fig.~\ref{diag}) are common in natural populations of fruit flies of the \textit{Drosophila} genus \citep[\eg][]{Li06,Zeng10a,Pool12}. Additionally, the abundance of population data for \textit{Drosophila} species makes them especially suitable for SFS and jSFS analysis under the described framework. Furthermore, the theory can be extended to more than two populations, \ie\ to phylogenetic inference. Our methods and algorithms can also be adjusted to an experimental setting with samples from multiple time points, as \eg\ in evolve-and-resequence experiments \citep{Kofl14}. Furthermore, this also applies to the analysis of ancient DNA samples as noted by \citet{Stei14}.
+The demographic scenarios presented here (Fig.~\ref{diag}) are common in natural populations of fruit flies of the \textit{Drosophila} genus \citep[\eg][]{Li06,Zeng10a,Pool12}. Additionally, the abundance of population data for \textit{Drosophila} species makes them especially suitable for SFS and jSFS analysis under the described framework. Furthermore, the theory can be extended to more than two populations, \ie\ to phylogenetic inference. Our methods and algorithms can also be adjusted to an experimental setting with samples from multiple time points, as \eg\ in evolve-and-resequence experiments \citep{Kofl14}. Furthermore, a setting with multiple time-points also applies to the analysis of ancient DNA samples as noted by \citet{Stei14}.
 \todo[inline]{CV: Carolin!!!! This method can also be used for ML estimation of effective population sizes! Should we elaborate and cite Agi's paper?}
 
 Generally, the methods and models we present in this article are simple, yet allow for maximum (marginal) likelihood analysis of SFS and jSFS from splitting populations with mutation-drift or pure-drift models, and for inference of evolutionary trajectories of population allelic proportions conditional on data. 
 
 \section*{Acknowledgments}
 
-The authors thank Reinhard B\"urger, Joachim Hermisson and other colleagues from the Faculty of Mathematics of the University of Vienna for their comments on an earlier version of this work. We also express graditute to all members of the Institute of Population Genetics for support. The study was funded by the Austrian Science Fund (FWF W1225-B20). %TODO: ask Julia how we acknowledgement the FWF!
+The authors thank Reinhard B\"urger, Joachim Hermisson and other colleagues from the Faculty of Mathematics of the University of Vienna for their comments on an earlier version of this work. We also express graditute to all members of the Institute of Population Genetics for support. JB, DS, CK and CV were supported by the Austrian Science Fund (FWF): DK W1225-B20. DS and CK were partially funded by FWF-P24551-B25.
+\section*{References}
+
+\bibliography{coal}
+
+\newpage
+
+\section*{Figures}
+
+\begin{figure}[ht]
+\includegraphics[width = 12cm]{diags.pdf}
+\caption{Demographic scenarios. A) Population expansion. B) Population split.}\label{diag}
+\end{figure}
+
+\begin{figure}[ht]
+\includegraphics[width = 12cm]{cProb_27_2_2017.pdf}
+\caption{Conditional probabilities of allelic states in a site frequency spectrum of size $M=3$. The solid lines represent the conditional probabilities of an allelic state $\y$ at $t=s$, while the dashed lines represent the probabilities at $t=0$. The parameters were set to $\mu_a=0.05$, $\mu_c=0.1$, $s=-200$ and $N=20$.}\label{cProb}
+\end{figure}
+
+\begin{figure}[ht]
+\includegraphics[width = 12cm]{twoPop_29_8_2016.pdf}
+\caption{A) The log-likelihood of the split time $s$, given a jSFS (Table~\ref{jointSFSdiscr}). The dashed line indicates the true split time. B) The conditional probability for the allelic state with $y_1=1$ and $y_2=2$, at $t=s$ (solid line) and $t=0$ (dashed line).}\label{twoPopdiscr}
+\end{figure}
+
+\begin{figure}[ht]
+\includegraphics[width = 6cm]{forw_back_ll_cont.pdf}
+\caption{The log-likelihood of the split time $s$, given a jSFS (Table~\ref{jointSFScont}). The dashed line indicates the true split time.}\label{twoPopcont}
+\end{figure}
+
+\clearpage
+
+\section*{Tables}
+
+\begin{table}[ht]
+\centering
+%\fontsize{5}{5}\selectfont
+\caption{A jSFS simulated with a discrete Moran model with parameters $L=10^5$, $M_1=M_2=3$, $\alpha=2/3$, $\theta=0.1$, $s=-40$ and $N=20$.}
+  \begin{tabular}{lllll}
+  \toprule
+    $\y$&$0$&$1$&$2$&$3$\\
+    \midrule
+    $0$  &$29037$ &$1315$ &$436$  &$185$\\ 
+    $1$  &$1276$  &$688$  &$539$  &$432$\\  
+    $2$  &$446$   &$529$  &$662$  &$1524$\\  
+    $3$  &$202$   &$507$  &$1430$ &$60792$\\
+    \bottomrule
+  \end{tabular}\label{jointSFSdiscr}
+\end{table}
+
+\begin{table}[ht]
+\centering
+%\fontsize{5}{5}\selectfont
+\caption{A jSFS simulated with a continuous diffusion model with parameters $L=10^5$, $M_1=M_2=3$, $\alpha=2/3$, $\theta=0.1$, and $s=-0.1$.}
+  \begin{tabular}{lllll}
+  \toprule
+    $y$&$0$&$1$&$2$&$3$\\
+    \midrule
+    $0$  &$28877$ &$1447$ &$494$  &$231$\\
+    $1$  &$1448$  &$570$  &$491$  &$557$\\
+    $2$  &$497$   &$516$  &$543$  &$1491$\\
+    $3$  &$253$   &$521$  &$1506$ &$60558$\\
+    \bottomrule
+  \end{tabular}\label{jointSFScont}
+\end{table}
+
+\begin{table}[ht]
+\centering
+%\fontsize{5}{5}\selectfont
+\caption{A table of symbols.}
+  \begin{tabular}{l|l}
+  \toprule
+    symbol& description\\
+    \midrule
+    $N$& (effective) population size or number\\
+    $\mu$ &overall mutation rate\\
+    $\alpha=1-\beta$ &mutation bias\\
+    $t$& discrete time\\
+    $\x{t}$ &allelic proportion at time $t$, either discrete or continuous\\
+    $\mathbf{T}$& transition matrix (discrete)\\
+    $M$&sample size\\
+    $\y$ ($0 \le \y \le M$) &frequency of the first allelic type in the sample\\
+    $\bs{\rho}$ &starting allelic proportions, discrete\\
+    $\bs{\pi}$ &stationary distribution, discrete\\
+    $\fv{t}$ &row vector with entries $(\fv{t})_{i} = \Pr(\x{t} = i\given \bs{\rho})$\\
+    $\bv{t}'$ &column vector with entries $(\bv{t})_{i} = \Pr(\y\given \x{t} = i)$\\
+    $\mathbf{1}$ &a row vector of 1's\\
+    $\mathbf{1}^{'}$ &a column vector of 1's\\
+    \midrule
+    $\theta=\mu N$ &scaled mutation rate\\
+    $\tau$&continuous time\\
+    ${\cal L}=-\frac{\partial}{\partial x}P(x)+ \frac{\partial^2}{\partial x^2}Q(x)$ &forward operator\\
+    ${\cal L}^{*}=P(x)\frac{\partial}{\partial x} +Q(x)\frac{\partial^2}{\partial x^2}$&backward operator\\
+    $\rho(x)$ &starting allelic proportions, continuous\\
+    $\pi(x)$ &stationary distribution, continuous\\
+    $\psi(\y\given x,\tau)$ &$\Pr(\y\given x,\tau,M)$, a discrete probability distribution, backward function\\
+    $\phi(x\given \tau,\rho)$ &a conditional density, corresponds to $p(x\given \tau,\rho(x_s))$,  forward function\\
+    $w(x)$ &the weight function, proportional to $\pi(x)$, if it exists\\
+    $\mathbf{B}(x)$ &diagonal matrix of polynomials \\
+    $\mathbf{F}(x)$ &diagonal matrix of polynomials \\
+    $\bs{b}'(t)$ &column vector of polynomials \\
+    $\bs{f}(t)$ &row vector of polynomials \\
+    $\mathbf{Q}(\tau)$ &diagonal matrix of exponential functions of $\tau$\\
+    $\mathbf{C}$ &coefficients of the backward function at time $\tau=0$\\
+    $\mathbf{\rho}$ &coefficients of the expansion of the initial proportion {CV: collision!}\\
+    $\psi(\y\given x,\tau)=\mathbf{1}\mathbf{Q}(\tau)\mathbf{B}(x)\mathbf{C}\mathbf{1}^{'}$\\
+    $\phi(x\given\tau,\rho)=\mathbf{1}w(x)\mathbf{\rho}(x)\mathbf{Q}(\tau)\mathbf{B}(x)\mathbf{1}^{'}$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\newpage
 
 \section{Appendices}
-
-\subsection{Boundary condition}\label{section:is_adjoint?}
-
-We start with eq.~(\ref{eq:adjoint_continuous}), and use shorthand notation for spatial derivatives. \todo{Here we also need to define the shorthand with respect to $\phi$ and $\psi$.} The forward and backward functions $\phi$ and $\psi$ are assumed to be twice differentiable with respect to $x$ in the open interval $(0,1)$. Eq.~(\ref{eq:adjoint_continuous}) can then be written as
-\begin{equation}\label{eq:start}
-\int_0^1  \left[-(P\phi)^{'}+(Q\phi)^{''}\right] \psi\, dx=
-\int_0^1  \phi \left[P\psi^{'}+Q\psi^{''}\right] dx\,.
-\end{equation}
-Consider the right side in the above equation. The second term is
-\begin{equation}
-\begin{split}
-\int_0^1  \phi Q\psi^{''} dx&=
-\phi Q\psi^{'}\big|_0^1-\int_0^1  (Q\phi)^{'}\psi^{'} dx\\
-&=\phi Q\psi^{'}\big|_0^1-(\phi Q)^{'}\psi\big|_0^1+\int_0^1  (Q\psi)^{''}\psi dx\,,
-\end{split}
-\end{equation}
-the first term is 
-\begin{equation}
-\int_0^1  \phi P\psi^{'} dx= \phi P\psi\big|_0^1 -\int_0^1  (\phi P)^{'}\psi dx\,.
-\end{equation}
-%Substituting these results for the right side of eq.~(\ref{eq:start}) we have:
-%\begin{equation}\label{eq:adjoint_shorthand}
-%\begin{split}
-%\int_0^1  \left[-(P\phi)^{'}+(Q\phi)^{''}\right] \psi\, dx&=
-%\int_0^1  \left[-(P\phi)^{'}+(Q\phi)^{''}\right]\psi\,dx\\
-%&\qquad+(\phi Q\psi^{'}-(\phi Q)^{'}\psi+P\phi\psi)\big|_0^1\,.
-%\end{split}
-%\end{equation}
-Hence for eq.~(\ref{eq:start}) to hold, we require the boundary condition to hold
-\begin{equation}\label{eq:bound_cond_1}
-\begin{split}
-\big(\phi Q\psi^{'}-(\phi Q)^{'}\psi+P\phi\psi\big)\big|_0^1&=0\,.
-\end{split}
-\end{equation}
-Using the weight function $w(x)$ defined in formula~(\ref{eq:weight_function}), this condition can be represented more compactly. The weight function fulfils, again in shorthand notation, 
-\begin{equation}
-Pw=(wQ)^{'}\,,
-\end{equation}
-as can be seen by substitution. Substitute $\phi(x,\tau)=w(x)g(x,\tau)$ into eq.~(\ref{eq:bound_cond_1}) to obtain
-\begin{equation}\label{eq:bound_cond_2}
-\begin{split}
-0&=\big(w Q g\psi^{'}-(w Q g)^{'}\psi+P w g\psi\big)\big|_0^1\\
-&=\big(w Q g\psi^{'}-((w Q)^{'}g+w Q g')\psi+P w g\psi\big)\big|_0^1\\
-&=\big(w Q g\psi^{'}-Pwg\psi-w Q g'\psi+P w g\psi\big)\big|_0^1\\
-&=\big(w Q g\psi^{'}-w Qg'\psi\big)\big|_0^1\\
-&=w Q(g\psi)'\big|_0^1\,.
-\end{split}
-\end{equation}
 
 \subsection{Derivation of the forward and backward diffusion equations from the decoupled recurrent mutation-drift Moran model}
 \label{section:diffDer}
 
-In this appendix, we derive the forward and backward diffusion equation from the forward and backward transition probabilities of the decoupled Moran model and show the tight connections between the discrete and continuous models. Derivations are simpler than usual \citep{Ewen04}; terms higher than the first derivative with respect to time and second derivative with respect to space do not occur. 
+In this appendix, we derive the forward and backward diffusion equation from the forward and backward transition probabilities of the decoupled Moran model with recurrent mutation and drift and show the tight connections between the discrete and continuous models. Derivations are simpler than usual \citep{Ewen04}; terms higher than the first derivative with respect to time and second derivative with respect to space do not occur. 
 
-\subsubsection{General mutation-drift model}
-Consider a focal bi-allelic site with the population frequency of allele zero denoted by $i$ ($1 \leq i \leq N-1$). With the transition probabilities of the decoupled Moran model (\ref{eq:transition_decoupled_Moran}), the frequency $i$ may increase or decrease by one due to mutation or drift or remain constant. Forward in time, the difference of the probability at frequency $i$ per Moran step may be written as
+Consider a focal bi-allelic site with the population frequency of allele one denoted by $i$ ($1 \leq i \leq N-1$). With the transition probabilities of the decoupled Moran model (\ref{eq:transition_decoupled_Moran}), the frequency $i$ may increase or decrease by one due to mutation or drift or remain constant. In the following formula we leave away the conditioning on the initial distribution. Forward in time, the difference of the probability at frequency $i$ per Moran step may be written as
 \begin{equation}\label{eq:forw_discr_mutation}
 \begin{split}
-&\Pr(\x{t+1}=i\given \rho(x_s))-\Pr(\x{t}=i\given \rho(x_s)) = \\
+&\Pr(\x{t+1}=i)-\Pr(\x{t}=i) = \\
 &\qquad \frac{\alpha\theta}{N^2} \bigg[(N-i+1)\Pr(\x{t}=i-1) - (N-i)\Pr(\x{t}=i)\bigg]\\
 &\qquad+\frac{\beta\theta}{N^2} \bigg[(i+1)\Pr(\x{t}=i+1) - i\Pr(\x{t}=i)\bigg]\\
 &\qquad+\frac1{N^2}\bigg[(i-1)(N-i+1)\Pr(\x{t}=i-1) \\
@@ -971,7 +1048,7 @@ Consider a focal bi-allelic site with the population frequency of allele zero de
 where the term within the first pair of square brackets corresponds to mutation towards allele one, the term within the second pair to mutation towards allele zero, and the term within the third pair to genetic drift.
 
 %To approximate the change in frequency as a continuous time and space process, the discrete time $t$ is usually replaced by $\tau = t/N^2$ and the discrete allele frequency $i$ by the proportion $x=i/N$. The average lifespan of an individual or the generation time in the Wright-Fisher model corresponds to $N$ Moran time steps, such that, after rescaling, time is measured in units of $N$ Wright-Fisher generations. We introduce the quantities $\delta \tau=1/N^2$ and $\delta x=1/N$ and rewrite (\ref{eq:forw_discr_mutation})
-%\todo[inline]{I think in the next formula, it should be $\Pr(\x{\tau}=xN)$ and not $\Pr(\x{\tau}=x)$ (the $N$ is different!) or we already introduce $\phi(x,t)$ defined as $\Pr(\x{\tau}=xN)\delta x \delta t$ here.}
+%\todo[inline]{I think in the next formula, it should be $\Pr(\x{\tau}=xN)$ and not $\Pr(\x{\tau}=x)$ (the $N$ is different!) or we already introduce $\phi(x\given t)$ defined as $\Pr(\x{\tau}=xN)\delta x \delta t$ here.}
 %\begin{equation}\label{eq:forw_partly_cont_mutation}
 %\begin{split}
 %&\frac{\Pr(\x{\tau+\delta \tau}=x)-\Pr(\x{\tau}=x)}{\delta \tau} =\\ &\qquad\alpha\theta \bigg[\frac{(1-x+\delta x)\Pr(\x{\tau}=x-\delta x) - (1-x)\Pr(\x{\tau}=x)}{\delta x}\bigg]\\
@@ -983,41 +1060,41 @@ where the term within the first pair of square brackets corresponds to mutation 
 %
 %\todo[inline]{Dom: I would directly do a transition from discrete to continuous without using intermediate steps that are hard to interpret (like $\Pr(\x{\tau}=xN)$; because here $xN=i$ stays constant but time $t$ is scaled).  What about the following (wording needs to be improved).}
 %\todo[inline]{CV: I agree with the below, but realize that this is still discrete and thus not a probability density!}
-%Let $\phi(x,\tau)$ be the probability density at frequency $x$ and
-%time $\tau$ such that $\phi(x,\tau)\delta \tau \delta x =
+%Let $\phi(x\given \tau)$ be the probability density at frequency $x$ and
+%time $\tau$ such that $\phi(x\given \tau)\delta \tau \delta x =
 %\Pr(\x{t}=i$).  Then, we can rewrite
 %Eq.~\eqref{eq:forw_discr_mutation} as
 %\begin{equation}\label{eq:forw_cont_mutation}
 %\begin{split}
-%  &\phi(x,\tau+\delta \tau)-\phi(x,\tau) =\\
-%  &\qquad\frac{\alpha\theta}{N} \bigg[(1-x+\delta x)\phi(x-\delta x, \tau) - (1-x)\phi(x,\tau)\bigg] \\
-%  &\qquad+\frac{\beta\theta}{N} \bigg[(x+\delta x)\phi(x+\delta x,\tau) - x\phi(x,\tau)\bigg] \\
+%  &\phi(x\given \tau+\delta \tau)-\phi(x\given \tau) =\\
+%  &\qquad\frac{\alpha\theta}{N} \bigg[(1-x+\delta x)\phi(x-\delta x, \tau) - (1-x)\phi(x\given \tau)\bigg] \\
+%  &\qquad+\frac{\beta\theta}{N} \bigg[(x+\delta x)\phi(x+\delta x,\tau) - x\phi(x\given \tau)\bigg] \\
 %  &\qquad+(x-\delta x)(1-x+\delta x)\phi(x-\delta x,\tau) \\
-%  &\qquad+(x+\delta x)(1-x-\delta x)\phi(x+\delta x,\tau) - 2x(1-x)\phi(x,\tau).\\
+%  &\qquad+(x+\delta x)(1-x-\delta x)\phi(x+\delta x,\tau) - 2x(1-x)\phi(x\given \tau).\\
 %\end{split}
 %\end{equation}
 
 %\todo[inline]{Dom: We could also directly introduce the differential quotients like in Eq.(27) at the moment.}
 
-\todo[inline]{I hope I understood Dominik's suggestions and will try again...}
+%\todo[inline]{I hope I understood Dominik's suggestions and will try again...}
 To approximate the change in frequency as a process in continuous time and space, the quantities $\delta \tau=1/N^2$ and $\delta x=1/N$ are introduced. Furthermore, time is rescaled as $\tau = t\delta \tau$, the allelic proportions as $x=i\delta x$, such that $\phi(x\given\tau,\rho)\delta \tau \delta x =
-\Pr(\x{t}=i\given \rho(x_s))$. %Taking the limit to $N\to\infty$, 
-We can rewrite eq.~\eqref{eq:forw_discr_mutation} as
+\Pr(\x{t}=i)$. Taking the limit $N\to\infty$, eq.~\eqref{eq:forw_discr_mutation} is rewritten as as\todo{CV: restore limit here?}
 \begin{equation}\label{eq:forw_partly_cont_mutation}
 \begin{split}
-&%\lim_{N\to\infty}
+&\lim_{N\to\infty}
 \frac{\phi(x\given \tau+\delta \tau, \rho)-\phi(x\given \tau, \rho)}{\delta \tau} =\\ 
-&\qquad
-%\lim_{N\to\infty}\bigg[
+&\quad
+\lim_{N\to\infty}\bigg[
 \alpha\theta \bigg[\frac{(1-x+\delta x)\phi(x-\delta x\given \tau,\rho) - (1-x)\phi(x\given\tau,\rho)}{\delta x}\bigg]\\
 &\qquad+\beta\theta \bigg[\frac{(x+\delta x)\phi(x+\delta x\given\tau,\rho) - x\phi(x\given\tau,\rho)}{\delta x}\bigg]\\
 &\qquad+\bigg[\frac{(x-\delta x)(1-x+\delta x)\phi(x-\delta x\given\tau,\rho)}{\delta x^2}\\
 &\qquad+ \frac{(x+\delta x)(1-x-\delta x)\phi(x+\delta x\given\tau,\rho)}{\delta x^2}-\frac{2x(1-x)\phi(x\given\tau,\rho)}{\delta x^2}\bigg]
-%\bigg]
+\bigg]
 .\\
 \end{split}
 \end{equation}
-Letting $N\to\infty$, the term to the left of the equality sign of (\ref{eq:forw_partly_cont_mutation}) corresponds to the definition of the first derivative with respect to time $\tau$ of $\phi(x\given\tau,\rho)$; the term of mutations towards allele one corresponds to the first derivatives with respect to $x$ of $-(1-x)\phi(x\given\tau,\rho)$, the term of mutations towards allele zero to the first derivative of $x\phi(x\given\tau,\rho)$; the drift term corresponds to the definition of the second symmetric derivative with respect to $x$ of $x(1-x)\phi(x\given\tau,\rho)$. After minor rearrangements, the familiar form of the forward mutation-drift diffusion equation is obtained:
+%Letting $N\to\infty$, t
+The term to the left of the equality sign of (\ref{eq:forw_partly_cont_mutation}) corresponds to the definition of the first derivative with respect to time $\tau$ of $\phi(x\given\tau,\rho)$; the terms with mutations correspond to the first derivatives with respect to $x$ of $-(1-x)\phi(x\given\tau,\rho)$ and $x\phi(x\given\tau,\rho)$, respectively; the drift term corresponds to the definition of the second symmetric derivative with respect to $x$ of $x(1-x)\phi(x\given\tau,\rho)$. After minor rearrangements, the familiar form of the forward recurrent mutation-drift diffusion equation is obtained
 \begin{equation}\label{eq:forw_mutdrift}
 \frac{\partial}{\partial \tau} \phi(x\given\tau,\rho) = -\frac{\partial}{\partial x}\theta(\alpha-x)\phi(x\given\tau,\rho) +\frac{\partial^2}{\partial x^2}x(1-x)\phi(x\given\tau,\rho).
 \end{equation}
@@ -1038,16 +1115,79 @@ After rescaling time and space, considering the limit $N \to \infty$, and settin
 -\frac{\partial}{\partial \tau} \psi(\y\given x,\tau) =
     \theta(\alpha-x)\frac{\partial}{\partial x} \psi(\y\given x,\tau) +x(1-x)\frac{\partial^2}{\partial x^2}\psi(\y\given x,\tau).
 \end{equation}
-The minus sign on the left side of the backward diffusion equation (\ref{eq:backw_mutdrift}) may be unusual, but necessary such that the time $\tau$ runs in the same direction in the forward and backward diffusion. Note that \citet{Zhao13a} also use a pair of forward and backward diffusion equations with differing signs.
+The minus sign on the left side of the backward diffusion equation (\ref{eq:backw_mutdrift}) may be unusual \citep[compare][]{Ewen04}, but necessary such that the time $\tau$ runs in the same direction in the forward and backward diffusion. Note that \citet{Zhao13a} also use a pair of forward and backward diffusion equations with differing signs.
 
 %It is straightforward to modify the assumptions in Section~\ref{section:assumptions} to continuous time.
+\subsection{Boundary condition}\label{section:is_adjoint?}
 
-\subsubsection{Derivation of the boundary mutation-drift model from the recurrent mutation-drift model}\label{section:backward_derivation}
+In the following, we use the prime to indicate the (partial) derivative with respect to $x$ and leave away the terms in brackets for $\phi$ and $\psi$. Eq.~(\ref{eq:adjoint_continuous}) can then be written as
+\begin{equation}\label{eq:start}
+\int_0^1  \left[-(P\phi)^{'}+(Q\phi)^{''}\right] \psi\, dx=
+\int_0^1  \phi \left[P\psi^{'}+Q\psi^{''}\right] dx\,.
+\end{equation}
+The first term on the right side is 
+\begin{equation}
+\int_0^1  \phi P\psi^{'} dx= \phi P\psi\big|_0^1 -\int_0^1  (\phi P)^{'}\psi dx
+\end{equation}
+and the second term on the right side is
+\begin{equation}
+\begin{split}
+\int_0^1  \phi Q\psi^{''} dx&=
+\phi Q\psi^{'}\big|_0^1-\int_0^1  (Q\phi)^{'}\psi^{'} dx\\
+&=\phi Q\psi^{'}\big|_0^1-(\phi Q)^{'}\psi\big|_0^1+\int_0^1  (Q\psi)^{''}\psi dx\,,
+\end{split}
+\end{equation}
+%Substituting these results for the right side of eq.~(\ref{eq:start}) we have:
+%\begin{equation}\label{eq:adjoint_shorthand}
+%\begin{split}
+%\int_0^1  \left[-(P\phi)^{'}+(Q\phi)^{''}\right] \psi\, dx&=
+%\int_0^1  \left[-(P\phi)^{'}+(Q\phi)^{''}\right]\psi\,dx\\
+%&\qquad+(\phi Q\psi^{'}-(\phi Q)^{'}\psi+P\phi\psi)\big|_0^1\,.
+%\end{split}
+%\end{equation}
+Hence for eq.~(\ref{eq:start}) to hold, we require the boundary condition 
+\begin{equation}\label{eq:bound_cond_1}
+\begin{split}
+\big(\phi Q\psi^{'}-(\phi Q)^{'}\psi+\phi P\psi\big)\big|_0^1&=0\,.
+\end{split}
+\end{equation}
+Using the weight function $w(x)$ defined in formula~(\ref{eq:weight_function}), this condition can be represented more compactly. The weight function fulfils
+\begin{equation}
+Pw=(wQ)^{'}\,.
+\end{equation}
+Substitute $\phi(x\given \tau)=w(x)g(x,\tau,\rho)$ into eq.~(\ref{eq:bound_cond_1}) to obtain
+\begin{equation}\label{eq:bound_cond_2}
+\begin{split}
+0&=\big(w Q g\psi^{'}-(w Q g)^{'}\psi+P w g\psi\big)\big|_0^1\\
+&=\big(w Q g\psi^{'}-((w Q)^{'}g+w Q g')\psi+P w g\psi\big)\big|_0^1\\
+&=\big(w Q g\psi^{'}-Pwg\psi-w Q g'\psi+P w g\psi\big)\big|_0^1\\
+&=\big(w Q g\psi^{'}-w Qg'\psi\big)\big|_0^1\\
+&=w Q(g\psi)'\big|_0^1\,.
+\end{split}
+\end{equation}
+
+\subsection{Propagator}\label{section:Greens_function}
+
+\citet{Song12} analyze self-adjoint differential equations, with a Dirac delta function $\delta(x-p)$ as starting point at $\tau=0$, rather than an arbitrary time $s$ in the past. Denote the eigenfunctions of the diffusion equation with the backward operator $\cal{L}^*$ with $B_n(x)$. Eq.~(5) of \citet{Song12} defines a ``propagator'' \citep[][chap.~19]{Bayi06}
+\begin{equation}\label{eq:propagator}
+    p(x\given p,\tau)=\sum_{n=0}^\infty e^{-\lambda_i \tau}\pi(x) \frac{B_n(x)B_n(p)}{\langle B_n(x)B_n(p) \rangle_{\pi}}
+\end{equation}
+as the solution of the diffusion equation with a starting state modeled by the Dirac Delta function $\delta(x-p)$. If the starting condition is not a particular state but, more usually, a distribution $\rho(p)$, the function
+\begin{equation}\label{eq:solution}
+    h(x\given p,\rho,\tau)=\int_0^1 p(x\given p,\tau)\rho(p)\,dp
+\end{equation}
+solves the diffusion equation. With the applications in this article, the infinite series in equations (\ref{eq:propagator}) and (\ref{eq:solution}) are more cumbersome than the direct route via the polynomials of degree $M$. 
+
+\end{document}
+
+\end{document}
+
+\subsubsection{Derivation of the boundary mutation-drift model from the recurrent mutation-drift model}
 
 \todo[inline]{I think that DS's derivation of the continuous boundary mutation-drift model from the discrete boundary mutation-drift model makes more sense here! Go for it, DS!}
 In this subsection, we derive the continuous boundary mutation-drift model from the discrete recurrent mutation-drift model. It is also possible to derive the same equations from the discrete boundary mutation model.
 
-For $\theta\to 0$, $\phi(x,\tau)$ becomes singular at the boundaries $x=0$ and $x=1$. For the boundary mutation model, the density $\phi(x,\tau)\delta x$ is replaced by a measure with boundary terms
+For $\theta\to 0$, $\phi(x\given \tau)$ becomes singular at the boundaries $x=0$ and $x=1$. For the boundary mutation model, the density $\phi(x\given \tau)\delta x$ is replaced by a measure with boundary terms
 \begin{equation}\label{eq:measure}
 \begin{cases}
 b_0(\tau)-\int_{\delta x}^{1-\delta x}(1-x)\varphi(x,\tau)\,dx &\text{for  $x=0$,}\\
@@ -1055,11 +1195,11 @@ b_0(\tau)-\int_{\delta x}^{1-\delta x}(1-x)\varphi(x,\tau)\,dx &\text{for  $x=0$
 b_1(\tau)-\int_{\delta x}^{1-\delta x}x\varphi(x,\tau)\,dx &\text{for  $x=1$\,.}\\
 \end{cases}
 \end{equation}
-The boundary terms are parametrized such that $b_0(\tau)$ and $b_1(\tau)$ represent the slowly changing part, with changes at a rate of $\theta$. The integrals correspond the probability mass that drifts from the interior towards the boundaries in proportions
+The boundary terms are parametrized such that $b_0(\tau)$ and $b_1(\tau)$ represent the slowly changing part, with changes at a rate of $\theta$. The integrals correspond the probability masses that drift from the interior towards the boundaries
 \begin{align}
   \begin{cases}
-    \int_{\delta x}^{1-\delta x}(1-x)\,\varphi(x=\delta x,\tau)\,dx         &\text{via $x=\delta x$ to $x=0$, and}\\
-    \int_{\delta x}^{1-\delta x}x\,\varphi(x=1-\frac1N,\tau) \,dx        & \text{via $x=1-\delta x$ to $x=1$\,.}
+    \int_{\delta x}^{1-\delta x}(1-x)\,\varphi(x,\tau)\,dx         &\text{via $x=\delta x$ to $x=0$, and}\\
+    \int_{\delta x}^{1-\delta x}x\,\varphi(x,\tau) \,dx        & \text{via $x=1-\delta x$ to $x=1$\,.}
 \end{cases}
 \end{align}
 These parts change quickly, \ie\ at the rate of drift. As $b_0(\tau)+b_1(\tau)=1$, the measure integrates to one within the unit interval. 
@@ -1099,11 +1239,11 @@ Equations (\ref{eq:forw_gainmut})-(\ref{eq:forw_drift}) completely specify the f
 
 Backward in time, the pure drift diffusion equation
 \begin{equation}\label{eq:backw_drift}
-  \frac{\partial}{\partial \tau} \psi(x,\tau) =\frac{\partial^2}{\partial x^2}x(1-x)\,\psi(x,\tau) 
+  \frac{\partial}{\partial \tau} \psi(\y\given \tau) =x(1-x)\,\frac{\partial^2}{\partial x^2}\psi(\y\given \tau) 
 \end{equation}
 is also defined in the interval $\frac1N<x<\frac{N-1}N$. The probability of having arisen from the boundaries by drift at a time $\delta t$ ago is zero, such that the terms corresponding to equation (\ref{eq:forw_lossdrift}) backward in time are zero. Mutations that entered from zero, could have come from within the unit interval with probability $\alpha\theta(1-x)$; mutations that entered from one with probability $\beta\theta x$. The slow dynamics backward in time are analogous to those forward in time. We will expand on the backward model, when we introduce the backward eigenfunctions below.
 
-\subsubsection{Derivation of the backward boundary mutation-drift model using orthogonal polynomials}
+\subsubsection{Derivation of the backward boundary mutation-drift model using orthogonal polynomials}\label{section:backward_derivation}
 
 Similarly to the forward case, the backward eigenfunctions (corresponding to those derived for the pure-drift case by \citet{Song12}) can be obtained by expanding the Jacobi polynomials into a Taylor series to zeroth order. For the slow dynamics, $n=0$ and $n=1$, the eigenfunctions are identical to those in the general case \citep{Song12}. The fast-changing backward eigenfunctions in the pure-drift case \citep{Song12} can be obtained by expanding the Jacobi polynomials into a Taylor series to zeroth order. Terms corresponding to the delta functions at the boundaries in the forward expansion are of order $\theta$ for $i\geq 2$ in the backward case. Whence,
 \begin{equation}\label{eq:bound_back_eigen}
@@ -1115,7 +1255,7 @@ Similarly to the forward case, the backward eigenfunctions (corresponding to tho
 \end{equation}
 A change in the mutation bias $\alpha$ necessitates a change of the slow functions $H_0^{*}(x)$ and $H_1^{*}(x)$, but not of the fast functions. A change in $\theta$ is only reflected in the time-dependent part, as will be shown below.---Since a binomial likelihood corresponds to a polynomial, it can be expanded into the polynomials (\ref{eq:bound_back_eigen}).
 
-Backward in time, $\psi(x,t)$ decreases from the interior through mutation. Thus, for $n\geq 2$ the boundary conditions and the backward diffusion equation are the same as in the pure drift case, and the pure-drift backward diffusion equation is also applicable to the boundary mutation model. An expansion with the fast functions in (\ref{eq:bound_back_eigen}) with $n\geq 2$ leads to simple exponential decrease with rates $\lambda_n=n(n-1)$, such that with initial values $a_n^{*}$
+Backward in time, $\psi(\y\given t)$ decreases from the interior through mutation. Thus, for $n\geq 2$ the boundary conditions and the backward diffusion equation are the same as in the pure drift case, and the pure-drift backward diffusion equation is also applicable to the boundary mutation model. An expansion with the fast functions in (\ref{eq:bound_back_eigen}) with $n\geq 2$ leads to simple exponential decrease with rates $\lambda_n=n(n-1)$, such that with initial values $a_n^{*}$
 \begin{equation}
     T_n(\tau)=a_n^{*} e^{-n(n-1)|\tau|}\,.
 \end{equation}
@@ -1137,7 +1277,7 @@ With a starting value of $T_0^{*}(\tau=0)=a_0^{*}$, we obtain
 \begin{equation}
 \begin{split}
     T_0^{*}(\tau)&=a_0^{*}+\vartheta\sum_{n=2}^\infty a_n^{*}\,\frac{(-1)^n+1}{n}\, (1- e^{-n(n-1) |\tau|})\\
-        &=a_0^{*}+\vartheta\sum_{n=2}^\infty a_n^{*}\,A_n\Delta_n\, (1- e^{-n(n-1) |\tau|})\,.
+        &=a_0^{*}+\vartheta\sum_{n=2}^\infty a_n^{*}\,E_n\Delta_n\, (1- e^{-n(n-1) |\tau|})\,.
 \end{split}
 \end{equation}
 For $T_1^{*}(\tau)$, the linear inhomogeneous differential equation is 
@@ -1150,14 +1290,14 @@ For $T_1^{*}(\tau)$, the linear inhomogeneous differential equation is
 With the starting value $T_1(\tau=0)=a_1^{*}$, the solution of this differential equation is
 \begin{equation}
     T_1^{*}(t)=a_1^{*} e^{-\theta |\tau|} 
-    +\theta\sum_{n=2}^\infty a_n^{*}\,B_n\Delta_n\,  (e^{-\theta |\tau|}- e^{-n(n-1) |\tau|}) \,.
+    +\theta\sum_{n=2}^\infty a_n^{*}\,O_n\Delta_n\,  (e^{-\theta |\tau|}- e^{-n(n-1) |\tau|}) \,.
 \end{equation}
 
 The backward expansion for the boundary mutation model is therefore
 %\todo[]{CV: I fixed an error in this equation.}
 \begin{equation}\label{eq:backw_expansion_boundary}
 \begin{split}
-    &\psi(x,\tau)=T_0^{*}(\tau)H_0^{*}(x)+ T_1^{*}(\tau)H_1^{*}(x)+\sum_{n=2}^\infty a_n^{*} e^{-n(n-1) |\tau|}\,H_n^{*}(x)\,.
+    &\psi(\y\given \tau)=T_0^{*}(\tau)H_0^{*}(x)+ T_1^{*}(\tau)H_1^{*}(x)+\sum_{n=2}^\infty a_n^{*} e^{-n(n-1) |\tau|}\,H_n^{*}(x)\,.
 \end{split}
 \end{equation}
 
@@ -1171,9 +1311,9 @@ with $\Delta_0=\Delta_1=1$, and $\Delta_n=\frac{n-1}{(2n-1)n}$ for $n\geq 2$. Th
 
 \subsection{Propagator}\label{section:Greens_function}
 
-\citet{Song12} analyze self-adjoint differential equations, with a Dirac delta function $\delta(x-p)$ as starting point at $\tau=0$, rather than an arbitrary time $s$ in the past. Denote the eigenfunctions of the diffusion equation with the backward operator $\cal{L}^*$ with $B_i(x)$. Eq.~(5) of \citet{Song12} defines a ``propagator'' \citep[][chap.~19]{Bayi06}
+\citet{Song12} analyze self-adjoint differential equations, with a Dirac delta function $\delta(x-p)$ as starting point at $\tau=0$, rather than an arbitrary time $s$ in the past. Denote the eigenfunctions of the diffusion equation with the backward operator $\cal{L}^*$ with $B_n(x)$. Eq.~(5) of \citet{Song12} defines a ``propagator'' \citep[][chap.~19]{Bayi06}
 \begin{equation}\label{eq:propagator}
-    p(x\given p,\tau)=\sum_{i=0}^\infty e^{-\lambda_i \tau}\pi(x) \frac{B_i(x)B_i(p)}{\langle B_i(x)B_i(p) \rangle_{\pi}}
+    p(x\given p,\tau)=\sum_{n=0}^\infty e^{-\lambda_i \tau}\pi(x) \frac{B_n(x)B_n(p)}{\langle B_n(x)B_n(p) \rangle_{\pi}}
 \end{equation}
 as the solution of the diffusion equation with a starting state modeled by the Dirac Delta function $\delta(x-p)$. If the starting condition is not a particular state but, more usually, a distribution $\rho(p)$, the function
 \begin{equation}\label{eq:solution}
@@ -1203,7 +1343,7 @@ solves the diffusion equation. With the applications in this article, the infini
 \end{figure}
 
 \begin{figure}[ht]
-\includegraphics[width = 12cm]{twoPop_29_8_2016.pdf}
+\includegraphics[width = 12cm]{twoPop_27_2_2017.pdf}
 \caption{A) The log-likelihood of the split time $t$, given a jSFS (Table~\ref{jointSFSdiscr}). The dashed line indicates the true split time. B) The conditional probability for the allelic state with $y_1=1$ and $y_2=2$, at $t=s$ (solid line) and $t=0$ (dashed line).}\label{twoPopdiscr}
 \end{figure}
 
@@ -1290,40 +1430,40 @@ solves the diffusion equation. With the applications in this article, the infini
     $\psi(\y\given x,\tau)=\mathbf{1}\mathbf{Q}(\tau)\mathbf{B}(x)\mathbf{C}\mathbf{1}^{'}$\\
     $\phi(x\given\tau,\rho)=\mathbf{1}w(x)\mathbf{\rho}(x)\mathbf{Q}(\tau)\mathbf{B}(x)\mathbf{1}^{'}$\\
     \bottomrule
-  \end{tabular}\label{jointSFScont}
+  \end{tabular}
 \end{table}
 
-\section{Are the forward functions proportional to the stationary distribution times the backward functions}
+%\section{Are the forward functions proportional to the stationary distribution times the backward functions}
 
-The stationary distribution is
-\begin{align}\label{eq:forw_bounddrift-stat}
-  \pi(x, \alpha, \theta) = \lim_{N\to\infty}
-  \begin{cases}
-    \beta-\vartheta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1x\,dx     & \text{if } 0 \leq x < 1/N         \\
-    \vartheta\frac{1}{x(1-x)}                                                 & \text{if } 1/N \le x \le 1-1/N \\
-    \alpha-\vartheta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1{1-x}\,dx  & \text{if } 1-1/N < x \leq 1 \,.      \\
-\end{cases}
-\end{align}
+%The stationary distribution is given in eq~(\ref{eq:forw_bounddrift-stat})
+%\begin{align}\label{eq:forw_bounddrift-stat}
+%  \pi(x, \alpha, \theta) = \lim_{N\to\infty}
+%  \begin{cases}
+%    \beta-\vartheta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1x\,dx     & \text{if } 0 \leq x < 1/N %        \\
+%    \vartheta\frac{1}{x(1-x)}                                                 & \text{if } 1/N %\le x \le 1-1/N \\
+%    \alpha-\vartheta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1{1-x}\,dx  & \text{if } 1-1/N < x %\leq 1 \,.      \\
+%\end{cases}
+%\end{align}
 
-\begin{equation}
-\begin{split}
-    \pi(x) &= \alpha -\vartheta\int_0^1 \frac{1-x^{m-1}}{1-x}\,dx\\
-    &=\alpha-\vartheta H_{m-1}\,,
-\end{split}
-\end{equation}
-where $H_{m-1}$ is the harmonic number. As this same relationship must also hold for the moments about one, $\min(\alpha,\beta)/\vartheta< H_{m-1}$, which leads to $M_{max}\approx e^{min(\alpha,\beta)/\vartheta}$.
-Note that a monomorphic sample of a binomial with sample size $M$ leads to terms $x^M$ or $(1-x)^M$, which corresponds to the moments about zero and one. Thus the sample size $M_{max}$ needs to be restricted to $M_{max}\approx e^{min(\alpha,\beta)/\vartheta}$ to avoid negative values. Since the boundary mutation model generally requires $\theta<0.1$ \citep{Vogl15}, this boundary on $M$ may be on the order of the effective population size $N$ and thus not pose practical problems. 
+%\begin{equation}
+%\begin{split}
+%    \pi(x) &= \alpha -\vartheta\int_0^1 \frac{1-x^{m-1}}{1-x}\,dx\\
+%    &=\alpha-\vartheta H_{m-1}\,,
+%\end{split}
+%\end{equation}
+%where $H_{m-1}$ is the harmonic number. As this same relationship must also hold for the moments about one, $\min(\alpha,\beta)/\vartheta< H_{m-1}$, which leads to $M_{\max}\approx e^{min(\alpha,\beta)/\vartheta}$.
+%Note that a monomorphic sample of a binomial with sample size $M$ leads to terms $x^M$ or $(1-x)^M$, which corresponds to the moments about zero and one. Thus the sample size $M_{\max}$ needs to be restricted to $M_{\max}\approx e^{min(\alpha,\beta)/\vartheta}$ to avoid negative values. Since the boundary mutation model generally requires $\theta<0.1$ \citep{Vogl15}, this boundary on $M$ may be on the order of the effective population size $N$ and thus not pose practical problems. 
 
-Note that the same problem occurs with the closely related Ewens-Watterson estimator $\hat \theta_W$ of molecular diversity. With the assumptions used for deriving $\hat \theta_W$, the probability of obtaining a monomorphic sample of size $M$ is $1-\theta\sum_{i=1}^{M-1} \frac{1}{i}$. It is therefore necessary to restrict the sample size to about $M<e^\theta$. 
+%Note that the same problem occurs with the closely related Ewens-Watterson estimator $\hat \theta_W$ of molecular diversity. With the assumptions used for deriving $\hat \theta_W$, the probability of obtaining a monomorphic sample of size $M$ is $1-\theta\sum_{i=1}^{M-1} \frac{1}{i}$. It is therefore necessary to restrict the sample size to about $M<e^\theta$. 
 
-\paragraph{Backward expansion} The backward system can also be diagonalized by setting
-\begin{equation}\label{eq:backw_bound_diag}
-\begin{cases}
-    B_0(x)&=1\\
-    B_1(x)&=x-\alpha\\
-    B_n(x)&=B_n(x)-\vartheta \frac{A_n\Delta_n}{\lambda_n} H_0^{*}(x)-\theta \frac{B_n\Delta_n}{\lambda_n} H_1^{*}(x)\qquad\text{for $n\geq 2$}\,.
-\end{cases}
-\end{equation}
+%\paragraph{Backward expansion} The backward system can also be diagonalized by setting
+%\begin{equation}\label{eq:backw_bound_diag}
+%\begin{cases}
+%    B_0(x)&=1\\
+%    B_1(x)&=x-\alpha\\
+%    B_n(x)&=B_n(x)-\vartheta \frac{E_n\Delta_n}{\lambda_n} H_0^{*}(x)-\theta \frac{B_n\Delta_n}{\lambda_n} H_1^{*}(x)\qquad\text{for $n\geq 2$}\,.
+%\end{cases}
+%\end{equation}
 
 
 % \subsection{Appendix: Derivation of the continuous boundary mutation model from the discrete boundary mutation model}
@@ -1372,7 +1512,7 @@ Note that the same problem occurs with the closely related Ewens-Watterson estim
 % \end{equation}
 % Within the interval $\delta x\leq x \leq 1-\delta x$, dynamics are governed by the pure drift diffusion equation
 % \begin{equation}\label{eq:forw_drift}
-%   \frac{\partial}{\partial \tau} \phi(x,\tau) =\frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x,\tau)\,.  
+%   \frac{\partial}{\partial \tau} \phi(x\given \tau) =\frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x\given \tau)\,.  
 % \end{equation}
 % Equations (\ref{eq:forw_lossdrift})-(\ref{eq:forw_drift}) completely specify the forward dynamics of the boundary mutation-drift model.
 
@@ -1381,7 +1521,7 @@ Note that the same problem occurs with the closely related Ewens-Watterson estim
 % Note that the forward expansion (\ref{eq:forw_expansion_boundary}) can be rearranged as follows. The expansion of the stationary distribution \label{eq:forw_bounddrift} is
 % \todo[inline]{Check signs!}
 % \begin{equation}
-%     H_0^{'}(x)=\pi(x, \alpha, \theta)= H_0(x)+\sum_{i=2}^\infty A_n H_n(x)
+%     H_0^{'}(x)=\pi(x, \alpha, \theta)= H_0(x)+\sum_{i=2}^\infty E_n H_n(x)
 % \end{equation}
 % and similarly
 % \begin{equation}
@@ -1399,16 +1539,16 @@ Note that the same problem occurs with the closely related Ewens-Watterson estim
 % \begin{split}
 %     T_0^{'}(\tau)&=a_0^{'}1+\sum_{i=2}^\infty e^{-n(n-1)\tau}\,,\\
 %     T_1^{'}(\tau)&=a_1^{'}e^{\theta \tau} +\sum_{i=2}^\infty a_1 B_n (e^{-\theta t}-e^{-n(n-1) \tau})\,,\\
-%     T_n^{'}(\tau)&=(a_n-a_0 A_n)e^{-n(n-1)\tau}\,.
+%     T_n^{'}(\tau)&=(a_n-a_0 E_n)e^{-n(n-1)\tau}\,.
 % \end{split}
 % \end{equation}
 % With these redefinitions the forward expansion becomes
 % \begin{equation}\label{eq:forw_expansion_boundary}
 % \begin{split}
-%     &\phi(x,t)= T_0(\tau)\,H_0^{'}(x)+T_1(\tau)\,H_1^{'}(x)+\sum_{n=2}^\infty e^{-n(n-1)\tau}\,H_n(x)\,.
+%     &\phi(x\given t)= T_0(\tau)\,H_0^{'}(x)+T_1(\tau)\,H_1^{'}(x)+\sum_{n=2}^\infty e^{-n(n-1)\tau}\,H_n(x)\,.
 % \end{split}
 % \end{equation}
-% Truncated at some $n=n_{max}$ the latter version of the forward expansion is much smoother than the former. Furthermore,  $H_0^{'}(x)$ and $H_1^{'}(x)$ may be replaced by beta functions, as well as the boundary terms of the $H_n(x)$, such that the discontinuities at the boundaries are not necessary. The latter version thus seems preferable, if only the forward diffusion is needed, but only the former is orthogonal with the backward functions we develop below.
+% Truncated at some $n=n_{\max}$ the latter version of the forward expansion is much smoother than the former. Furthermore,  $H_0^{'}(x)$ and $H_1^{'}(x)$ may be replaced by beta functions, as well as the boundary terms of the $H_n(x)$, such that the discontinuities at the boundaries are not necessary. The latter version thus seems preferable, if only the forward diffusion is needed, but only the former is orthogonal with the backward functions we develop below.
 
 
 % \subsection{Example: irreversible boundary mutation model}
@@ -1417,11 +1557,11 @@ Note that the same problem occurs with the closely related Ewens-Watterson estim
 % Similar considerations to above also apply to the model in section~(\ref{section:irreversible}) with irreversible mutation, \ie\ where the ancestral and derived states are contrasted. Note that \citet{Evan07} arrive at the same irreversible diffusion model from a Wright-Fisher model and provide recursive equations of moments instead of orthogonal polynomials to calculate the expected SFS under non-equilibrium conditions. \citet{Zivk11} extend their analysis to provide the solution backward in time.  If $N\to\infty$, $\theta/(1-\theta\sum_{i=1}^{N-1}1/i)$ goes to infinity, such that the model collapses. Hence, we assume that mutations constantly supply probability mass from the boundaries to $x=1/N$ at rate $N\theta$ (after scaling time). The forward diffusion equation then becomes
 % \begin{equation}\label{eq:forw_onebounddrift}
 % \begin{split}
-% \frac{\partial}{\partial \tau} \phi(x,\tau)&=
-%     \lim_{N\to\infty} N\theta \delta(x-\tfrac1N)b+\frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x,\tau)\,.
+% \frac{\partial}{\partial \tau} \phi(x\given \tau)&=
+%     \lim_{N\to\infty} N\theta \delta(x-\tfrac1N)b+\frac{\partial^2}{\partial x^2}x(1-x)\,\phi(x\given \tau)\,.
 % \end{split}
 % \end{equation}
-% The term $b$ corresponds to the probability $\int_0^1\phi(x,\tau=0)\,dx$, which is unity if the initial distribution integrates to one. The equilibrium distribution is 
+% The term $b$ corresponds to the probability $\int_0^1\phi(x\given \tau=0)\,dx$, which is unity if the initial distribution integrates to one. The equilibrium distribution is 
 % \begin{equation}
 % \begin{split}
 %     \pi(x\given\theta)&=\left(1-\lim_{N\to\infty}\theta \int_{\tfrac1N}^{\tfrac{N-1}N} \frac1x\,dx\right)\delta(x)+\theta\frac{1}{x(1-x)}\,.
